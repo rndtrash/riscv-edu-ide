@@ -1,5 +1,5 @@
 import {Component, ComponentChild, RenderableProps} from "preact";
-import "./sidebar.css";
+import "./sidebar.scss";
 
 type SideBarCallback = (active: boolean) => void;
 
