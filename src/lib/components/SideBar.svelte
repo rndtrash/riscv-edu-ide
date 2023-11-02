@@ -1,10 +1,10 @@
 <script lang="ts">
     import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
-    import {type Writable, writable} from "svelte/store";
+    import {writable} from "svelte/store";
     import ToolBarRow from "$lib/components/ToolBarRow.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
 
-    let buttonsTop: Writable<SideBarToolPair[]> = writable([
+    let buttonsTop: SideBarToolPair[] = [
         {
             type: SideBarTest,
             name: "Side Bar Test",
@@ -16,10 +16,10 @@
             name: "Side Bar Test 2",
             icon: "folder",
             state: writable({text: ""})
-        }]);
+        }];
     export let sideBarToolTop: SideBarToolPair | undefined;
 
-    let buttonsBottom: Writable<SideBarToolPair[]> = writable([
+    let buttonsBottom: SideBarToolPair[] = [
         {
             type: SideBarTest,
             name: "Side Bar Test",
@@ -31,7 +31,7 @@
             name: "Side Bar Test 2",
             icon: "folder",
             state: writable({text: ""})
-        }]);
+        }];
     export let sideBarToolBottom: SideBarToolPair | undefined;
 </script>
 

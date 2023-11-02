@@ -1,15 +1,14 @@
 <script lang="ts">
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
     import IconButton from "$lib/components/IconButton.svelte";
-    import {type Writable, writable} from "svelte/store";
 
-    export let buttons: Writable<SideBarToolPair[]> = writable([]);
+    export let buttons: SideBarToolPair[] = [];
     let currentButton = -1;
     export let sideBarTool: SideBarToolPair | undefined;
-    $: sideBarTool = currentButton >= 0 ? $buttons[currentButton] : undefined;
+    $: sideBarTool = currentButton >= 0 ? buttons[currentButton] : undefined;
 </script>
 
-{#each $buttons as button, index}
+{#each buttons as button, index}
     <IconButton icon={button.icon}
                 alt={button.name}
                 active={currentButton === index}
