@@ -27,44 +27,51 @@
     <meta name="description" content="RISC-V Edu IDE"/>
 </svelte:head>
 
-<header>header</header>
+<header class="primary-container on-primaty-container-text">header</header>
 
 <main>
     <SideBar bind:sideBarToolTop={sideBarToolTopLeft} bind:sideBarToolBottom={sideBarToolBottomLeft}/>
 
     <div class="grid">
-        <div class="left">
-            {#if (sideBarToolTopLeft !== undefined)}
+        {#if (sideBarToolTopLeft !== undefined)}
+            <div class="tool-window left surface-variant on-surface-variant-text">
                 <svelte:component this={sideBarToolTopLeft.type} bind:state={$sideBarToolTopLeftState}/>
-            {/if}
-        </div>
+            </div>
+        {/if}
 
         <div class="center">
             <TabbedEditor/>
         </div>
 
-        <div class="right">
-            {#if (sideBarToolTopRight !== undefined)}
+        {#if (sideBarToolTopRight !== undefined)}
+            <div class="tool-window right">
                 <svelte:component this={sideBarToolTopRight.type} bind:state={$sideBarToolTopRightState}/>
-            {/if}
-        </div>
+            </div>
+        {/if}
 
-        <div class="bottom">
-            {#if (sideBarToolBottomLeft !== undefined)}
-                <div class="left">
-                    <svelte:component this={sideBarToolBottomLeft.type} bind:state={$sideBarToolBottomLeftState}/>
-                </div>
-            {/if}
-            {#if (sideBarToolBottomRight !== undefined)}
-                <div class="right">
-                    <svelte:component this={sideBarToolBottomRight.type} bind:state={$sideBarToolBottomRightState}/>
-                </div>
-            {/if}
-        </div>
+
+        {#if (sideBarToolBottomLeft !== undefined || sideBarToolBottomRight !== undefined)}
+            <div class="bottom">
+                {#if (sideBarToolBottomLeft !== undefined)}
+                    <div class="left">
+                        <svelte:component this={sideBarToolBottomLeft.type} bind:state={$sideBarToolBottomLeftState}/>
+                    </div>
+                {/if}
+                {#if (sideBarToolBottomRight !== undefined)}
+                    <div class="right">
+                        <svelte:component this={sideBarToolBottomRight.type} bind:state={$sideBarToolBottomRightState}/>
+                    </div>
+                {/if}
+            </div>
+        {/if}
     </div>
 
     <SideBar bind:sideBarToolTop={sideBarToolTopRight} bind:sideBarToolBottom={sideBarToolBottomRight}/>
 </main>
+
+<footer class="tertiary-container on-tertiary-container-text">
+    footer
+</footer>
 
 <style lang="scss">
   main {
@@ -104,6 +111,11 @@
           flex-basis: 0;
           flex-grow: 1;
         }
+      }
+
+      > .tool-window {
+        padding: 24px;
+        border-radius: 0 24px 24px 0;
       }
     }
   }

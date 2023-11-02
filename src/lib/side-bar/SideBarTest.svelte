@@ -4,4 +4,5 @@
 
 <div>
     <input type="text" bind:value={state.text}/>
+    Cumponent
 </div>

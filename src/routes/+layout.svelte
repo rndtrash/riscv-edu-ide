@@ -2,7 +2,8 @@
     import './styles.scss';
 </script>
 
-<div class="app background on-background-text body-large">
+<!-- TODO: I don't like the "background" class. -->
+<div class="app on-background-text body-large">
     <slot/>
 </div>
 
@@ -15,5 +16,11 @@
 
     width: 100vw;
     height: 100vh;
+
+    background-color: #ffffff;
+
+    @media (prefers-color-scheme: dark) {
+      background-color: #1E1F22;
+    }
   }
 </style>
