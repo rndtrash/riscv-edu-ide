@@ -37,7 +37,7 @@
         }]);
     let currentButtonBottom = -1;
     export let sideBarToolBottom: SideBarToolPair | undefined;
-    $: sideBarToolBottom = currentButtonBottom >= 0 ? $buttonsTop[currentButtonBottom] : undefined;
+    $: sideBarToolBottom = currentButtonBottom >= 0 ? $buttonsBottom[currentButtonBottom] : undefined;
 </script>
 
 <div class="button-column surface on-surface-text">
