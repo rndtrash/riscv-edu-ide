@@ -1,9 +1,23 @@
 <script lang="ts">
-    export let title: string = "cool editor";
-    export let state: { text: string } = {text: ""};
+    import {onMount} from "svelte";
+
+    export let state: { text: string } | undefined;
+    export let hasChanges: boolean;
+    export let filePath: string;
+    $: hasChanges = state?.text !== "Hello";
+
+    onMount(() => {
+        if (state === undefined) {
+            state = {text: "Hello"};
+            hasChanges = false;
+        }
+    });
 </script>
 
-<div>
-    <input type="text" bind:value={state.text}/>
-    Cool Editor
-</div>
+{#if (state !== undefined)}
+    <div>
+        Editing {filePath}:
+        <input type="text" bind:value={state.text}/>
+        Cool Editor
+    </div>
+{/if}
