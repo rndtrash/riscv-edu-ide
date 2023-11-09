@@ -4,22 +4,12 @@
     import TabbedEditor from "$lib/components/TabbedEditor.svelte";
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
+    import {rootFolder} from "$lib/backend/FileSystem";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
-    let sideBarToolTopLeftState: any;
-    $: sideBarToolTopLeftState = sideBarToolTopLeft?.state;
-
     let sideBarToolTopRight: SideBarToolPair | undefined;
-    let sideBarToolTopRightState: any;
-    $: sideBarToolTopRightState = sideBarToolTopRight?.state;
-
     let sideBarToolBottomLeft: SideBarToolPair | undefined;
-    let sideBarToolBottomLeftState: any;
-    $: sideBarToolBottomLeftState = sideBarToolBottomLeft?.state;
-
     let sideBarToolBottomRight: SideBarToolPair | undefined;
-    let sideBarToolBottomRightState: any;
-    $: sideBarToolBottomRightState = sideBarToolBottomRight?.state;
 </script>
 
 <svelte:head>
@@ -35,7 +25,7 @@
     <div class="grid">
         {#if (sideBarToolTopLeft !== undefined)}
             <div class="tool-window left surface-variant on-surface-variant-text">
-                <svelte:component this={sideBarToolTopLeft.type} bind:state={$sideBarToolTopLeftState}/>
+                <svelte:component this={sideBarToolTopLeft.type} bind:state={sideBarToolTopLeft.state}/>
             </div>
         {/if}
 
@@ -45,7 +35,7 @@
 
         {#if (sideBarToolTopRight !== undefined)}
             <div class="tool-window right">
-                <svelte:component this={sideBarToolTopRight.type} bind:state={$sideBarToolTopRightState}/>
+                <svelte:component this={sideBarToolTopRight.type} bind:state={sideBarToolTopRight.state}/>
             </div>
         {/if}
 
@@ -54,12 +44,12 @@
             <div class="bottom">
                 {#if (sideBarToolBottomLeft !== undefined)}
                     <div class="left">
-                        <svelte:component this={sideBarToolBottomLeft.type} bind:state={$sideBarToolBottomLeftState}/>
+                        <svelte:component this={sideBarToolBottomLeft.type} bind:state={sideBarToolBottomLeft.state}/>
                     </div>
                 {/if}
                 {#if (sideBarToolBottomRight !== undefined)}
                     <div class="right">
-                        <svelte:component this={sideBarToolBottomRight.type} bind:state={$sideBarToolBottomRightState}/>
+                        <svelte:component this={sideBarToolBottomRight.type} bind:state={sideBarToolBottomRight.state}/>
                     </div>
                 {/if}
             </div>

@@ -1,11 +1,10 @@
 import type {ComponentType, SvelteComponent} from 'svelte';
-import type {Writable} from "svelte/store";
 
-export type SideBarToolConstraint = SvelteComponent<any, { state: Writable<any>, name: string, icon: string }>;
+export type SideBarToolConstraint = SvelteComponent<{ state: any | undefined }>;
 
 export interface SideBarToolPair {
     type: ComponentType<SideBarToolConstraint>,
     name: string,
     icon: string,
-    state: Writable<any>
+    state: any | undefined
 }

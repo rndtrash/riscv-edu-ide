@@ -42,15 +42,15 @@
             </button>
         </div>
         {#if (editor !== undefined)}
-            {#key editor.filePath}
-                <div class="editor">
+            <div class="editor">
+                {#key editor.filePath}
                     <svelte:component
                             this={editor.type}
                             bind:hasChanges={editor.hasChanges}
                             filePath={editor.filePath}
                             bind:state={editor.state}/>
-                </div>
-            {/key}
+                {/key}
+            </div>
         {/if}
     {/if}
 </div>

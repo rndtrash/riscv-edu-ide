@@ -1,6 +1,5 @@
 <script lang="ts">
     import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
-    import {writable} from "svelte/store";
     import ToolBarRow from "$lib/components/ToolBarRow.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
 
@@ -9,13 +8,13 @@
             type: SideBarTest,
             name: "Side Bar Test",
             icon: "folder",
-            state: writable({text: ""})
+            state: undefined
         },
         {
             type: SideBarTest,
             name: "Side Bar Test 2",
             icon: "folder",
-            state: writable({text: ""})
+            state: undefined
         }];
     export let sideBarToolTop: SideBarToolPair | undefined;
 
@@ -24,13 +23,13 @@
             type: SideBarTest,
             name: "Side Bar Test",
             icon: "folder",
-            state: writable({text: ""})
+            state: undefined
         },
         {
             type: SideBarTest,
             name: "Side Bar Test 2",
             icon: "folder",
-            state: writable({text: ""})
+            state: undefined
         }];
     export let sideBarToolBottom: SideBarToolPair | undefined;
 </script>
