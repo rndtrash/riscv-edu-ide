@@ -4,7 +4,7 @@
     import TabbedEditor from "$lib/components/TabbedEditor.svelte";
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
-    import {rootFolder} from "$lib/backend/FileSystem";
+    import {rootFolder, SaveAll} from "$lib/backend/FileSystem";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -17,7 +17,7 @@
     <meta name="description" content="RISC-V Edu IDE"/>
 </svelte:head>
 
-<header class="primary-container on-primaty-container-text">header</header>
+<header class="primary-container on-primaty-container-text">header <button on:click={() => SaveAll()}>DEBUG: save all files</button></header>
 
 <main>
     <SideBar bind:sideBarToolTop={sideBarToolTopLeft} bind:sideBarToolBottom={sideBarToolBottomLeft}/>
