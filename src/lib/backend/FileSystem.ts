@@ -171,24 +171,26 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
 
 // Get the root folder
 export let rootFolder: FSFolder;
-if (browser) {
-    let rf: FSNode | undefined = undefined;
-    try {
-        rf = await parseNodesRecursive();
-    } catch (e) {
-        console.error(e);
-    }
+(async () => {
+    if (browser) {
+        let rf: FSNode | undefined = undefined;
+        try {
+            rf = await parseNodesRecursive();
+        } catch (e) {
+            console.error(e);
+        }
 
-    if (rf === undefined) {
-        rootFolder = new FSFolder("");
-        rootFolder.Save();
-    } else {
-        if (rf instanceof FSFolder)
-            rootFolder = rf;
-        else
-            throw `Wrong type of the root node (expected ${typeof FSFolder}, got ${typeof rf})`;
+        if (rf === undefined) {
+            rootFolder = new FSFolder("");
+            rootFolder.Save();
+        } else {
+            if (rf instanceof FSFolder)
+                rootFolder = rf;
+            else
+                throw `Wrong type of the root node (expected ${typeof FSFolder}, got ${typeof rf})`;
+        }
     }
-}
+})();
 
 export function SaveAll() {
     rootFolder.Save();
