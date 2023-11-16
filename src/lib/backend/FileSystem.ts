@@ -17,10 +17,10 @@ interface IFSFileJson extends IFSNodeJson {
     contentsBase64: string;
 }
 
-abstract class FSNode {
+export abstract class FSNode {
     public name: string;
     protected changed: number;
-    protected parent: FSFolder | undefined;
+    public parent: FSFolder | undefined; // TODO: hide it. I tried setting it to protected but the TS has a problem with that
 
     protected constructor(name: string, changed?: number, parent?: FSFolder) {
         this.name = name;
@@ -50,11 +50,11 @@ abstract class FSNode {
         this.SaveWithContext(context);
     }
 
-    protected abstract SaveWithContext(context: string[]): void;
+    public abstract SaveWithContext(context: string[]): Promise<void>;
 }
 
-class FSFolder extends FSNode {
-    private children: FSNode[];
+export class FSFolder extends FSNode {
+    protected children: FSNode[];
 
     constructor(name: string, changed?: number, parent?: FSFolder, children?: FSNode[]) {
         super(name, changed, parent);
@@ -65,7 +65,7 @@ class FSFolder extends FSNode {
         }
     }
 
-    protected SaveWithContext(context: string[]): void {
+    public async SaveWithContext(context: string[]): Promise<void> {
         let newContext = [...context, this.name];
         let absolutePath = PATH_PREFIX + newContext.join(PATH_SEPARATOR);
 
@@ -87,23 +87,50 @@ class FSFolder extends FSNode {
         }
 
         for (let child of this.children) {
-            child.SaveWithContext(newContext);
+            await child.SaveWithContext(newContext);
         }
     }
 }
 
-class FSFile extends FSNode {
-    private contents: ArrayBuffer;
+export class FSFile extends FSNode {
+    private contents: Uint8Array;
 
-    constructor(name: string, changed?: number | undefined, parent?: FSFolder | undefined, contents?: ArrayBuffer | undefined) {
+    constructor(name: string, changed?: number | undefined, parent?: FSFolder | undefined, contents?: Uint8Array | undefined) {
         super(name, changed, parent);
 
-        this.contents = contents ?? new ArrayBuffer(0);
+        this.contents = contents ?? new Uint8Array(0);
     }
 
-    protected SaveWithContext(context: string[]): void {
+    protected static async bytesToBase64DataUrl(bytes: Uint8Array, type = "application/octet-stream"): Promise<string> {
+        return await new Promise((resolve, reject) => {
+            const reader = Object.assign(new FileReader(), {
+                onload: () => resolve(reader.result?.toString() ?? ""),
+                onerror: () => reject(reader.error),
+            });
+            reader.readAsDataURL(new File([bytes], "", {type}));
+        });
+    }
+
+    public async SaveWithContext(context: string[]): Promise<void> {
         let newContext = [...context, this.name];
-        // TODO:
+        let absolutePath = PATH_PREFIX + newContext.join(PATH_SEPARATOR);
+
+        // Updating the JSON for this node
+        let existingEntryJsonString = localStorage.getItem(absolutePath);
+        if (existingEntryJsonString !== null) {
+            let existingEntryJson: IFSNodeJson = JSON.parse(existingEntryJsonString);
+            if (existingEntryJson.changed === this.changed)
+                return;
+        }
+
+        let thisJson: IFSFileJson = {
+            type: "file",
+            name: this.name,
+            changed: this.changed,
+            contentsBase64: await FSFile.bytesToBase64DataUrl(this.contents)
+        };
+        let thisJsonString = JSON.stringify(thisJson);
+        localStorage.setItem(absolutePath, thisJsonString);
     }
 }
 
@@ -126,7 +153,14 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
         case "file": {
             let fileJson: IFSFileJson = nodeJson as unknown as IFSFileJson;
             // https://stackoverflow.com/questions/21797299/convert-base64-string-to-arraybuffer#comment124033543_49273187
-            return new FSFile(fileJson.name, fileJson.changed, undefined, await (await fetch("data:application/octet;base64," + fileJson.contentsBase64)).arrayBuffer());
+            return new FSFile(
+                fileJson.name,
+                fileJson.changed,
+                undefined,
+                new Uint8Array(
+                    await (await fetch("data:application/octet;base64," + fileJson.contentsBase64)).arrayBuffer()
+                )
+            );
         }
 
         default: {
@@ -138,8 +172,6 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
 // Get the root folder
 export let rootFolder: FSFolder;
 if (browser) {
-    console.log("browser");
-
     let rf: FSNode | undefined = undefined;
     try {
         rf = await parseNodesRecursive();
