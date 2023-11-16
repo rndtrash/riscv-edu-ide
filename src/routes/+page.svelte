@@ -5,11 +5,15 @@
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
     import {rootFolder, SaveAll} from "$lib/backend/FileSystem";
+    import {Machine} from "$lib/backend/Emulator/Machine";
+    import {ZeroToZero} from "$lib/backend/Emulator/Masters/ZeroToZero";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
     let sideBarToolBottomLeft: SideBarToolPair | undefined;
     let sideBarToolBottomRight: SideBarToolPair | undefined;
+
+    let m : Machine = new Machine(new ZeroToZero(), [{name: "consolelog", context: undefined}]);
 </script>
 
 <svelte:head>
@@ -17,7 +21,11 @@
     <meta name="description" content="RISC-V Edu IDE"/>
 </svelte:head>
 
-<header class="primary-container on-primaty-container-text">header <button on:click={() => SaveAll()}>DEBUG: save all files</button></header>
+<header class="primary-container on-primaty-container-text">
+    header
+    <button on:click={() => SaveAll()}>DEBUG: save all files</button>
+    <button on:click={() => m.Tick()}>DEBUG: tick</button>
+</header>
 
 <main>
     <SideBar bind:sideBarToolTop={sideBarToolTopLeft} bind:sideBarToolBottom={sideBarToolBottomLeft}/>
