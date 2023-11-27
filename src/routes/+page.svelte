@@ -13,7 +13,15 @@
     let sideBarToolBottomLeft: SideBarToolPair | undefined;
     let sideBarToolBottomRight: SideBarToolPair | undefined;
 
-    let m : Machine = new Machine(new ZeroToZero(), [{name: "consolelog", context: undefined}]);
+    let m: Machine = new Machine(new ZeroToZero(), [
+        {
+            name: "consolelog",
+            context: undefined
+        }, {
+            name: "ram32",
+            context: {address: 0, size: 128}
+        }
+    ]);
 </script>
 
 <svelte:head>
@@ -93,6 +101,8 @@
 
       > .center {
         grid-area: 1 / 2 / 2 / 3;
+
+        display: flex;
       }
 
       > .right {

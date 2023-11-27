@@ -1,6 +1,7 @@
 <script lang="ts">
     import type {EditorTabPair} from "$lib/editors/EditorTab";
     import EditorTest from "$lib/editors/EditorTest.svelte";
+    import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
@@ -20,6 +21,17 @@
         }];
         currentTab = tabs.length - 1;
     }
+
+    function addNewMonacoTab() {
+        tabs = [...tabs, {
+            type: EditorMonaco,
+            icon: "",
+            hasChanges: false,
+            filePath: `${Math.random()}`,
+            state: undefined
+        }];
+        currentTab = tabs.length - 1;
+    }
 </script>
 
 <div class="tabbed-editor">
@@ -27,6 +39,9 @@
         <h1>Welcome to the RISC-V Edu IDE!</h1>
         <button on:click={addNewTab}>
             Add a tab
+        </button>
+        <button on:click={addNewMonacoTab}>
+            Add a Monaco tab
         </button>
     {:else}
         <div class="tab-row">
@@ -61,7 +76,11 @@
     flex-flow: column nowrap;
     align-items: stretch;
 
+    flex-grow: 1;
+
     > .editor {
+      position: relative;
+
       flex-grow: 1;
     }
   }
