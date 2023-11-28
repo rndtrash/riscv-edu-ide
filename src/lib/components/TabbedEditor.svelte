@@ -55,6 +55,9 @@
             <button on:click={addNewTab}>
                 Add a tab
             </button>
+            <button on:click={addNewMonacoTab}>
+                Add a Monaco tab
+            </button>
         </div>
         {#if (editor !== undefined)}
             <div class="editor">

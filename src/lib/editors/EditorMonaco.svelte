@@ -2,6 +2,10 @@
     import {onDestroy, onMount} from 'svelte';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
+    export let state: Monaco.editor.ITextModel | undefined;
+    export let hasChanges: boolean = false;
+    export let filePath: string;
+
     let editor: Monaco.editor.IStandaloneCodeEditor;
     let monaco: typeof Monaco;
     let editorContainer: HTMLElement;
@@ -13,17 +17,21 @@
 
         // Your monaco instance is ready, let's display some code!
         editor = monaco.editor.create(editorContainer, {automaticLayout: true});
-        const model = monaco.editor.createModel(
+        state ??= monaco.editor.createModel(
             "console.log('Hello from Monaco! (the editor, not the city...)')",
             'javascript'
         );
-        editor.setModel(model);
+        editor.setModel(state);
+
+        editor.onDidChangeModelContent(() => hasChanges = true);
     });
 
     onDestroy(() => {
-        monaco?.editor.getModels().forEach((model) => model.dispose());
+        //monaco?.editor.getModels().forEach((model) => model.dispose());
         editor?.dispose();
     });
+
+    // TODO: dispose the model when the tab is closed
 </script>
 
 <div>
