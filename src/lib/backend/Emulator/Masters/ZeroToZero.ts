@@ -1,4 +1,4 @@
-import {Device, Master, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
+import {Master} from "$lib/backend/Emulator/Bus";
 
 export class ZeroToZero extends Master<number, number> {
     protected MasterTick(tick: number): void {

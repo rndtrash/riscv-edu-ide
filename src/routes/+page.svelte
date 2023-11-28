@@ -1,25 +1,39 @@
 <script lang="ts">
-    //import welcome from '$lib/images/svelte-welcome.webp';
-    //import welcome_fallback from '$lib/images/svelte-welcome.png';
     import TabbedEditor from "$lib/components/TabbedEditor.svelte";
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
-    import {rootFolder, SaveAll} from "$lib/backend/FileSystem";
+    import {SaveAll} from "$lib/backend/FileSystem";
     import {Machine} from "$lib/backend/Emulator/Machine";
-    import {ZeroToZero} from "$lib/backend/Emulator/Masters/ZeroToZero";
+    import {availableProjects} from "$lib/backend/ProjectManager";
+    import {CPUInstructions, SimpleCPU} from "$lib/backend/Emulator/Masters/SimpleCPU";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
     let sideBarToolBottomLeft: SideBarToolPair | undefined;
     let sideBarToolBottomRight: SideBarToolPair | undefined;
 
-    let m: Machine = new Machine(new ZeroToZero(), [
+    let availableProjectsList = availableProjects();
+
+    let m: Machine = new Machine(new SimpleCPU(), [
         {
             name: "consolelog",
             context: undefined
         }, {
             name: "ram32",
-            context: {address: 0, size: 128}
+            context: {address: 128, size: 128}
+        }, {
+            name: "rom32",
+            context: {
+                address: 0,
+                contents: new Uint32Array([
+                    CPUInstructions.Noop,
+                    CPUInstructions.LoadImmediate, 5,
+                    CPUInstructions.AddToRegister, 3,
+                    CPUInstructions.StoreAtAddress, 128,
+                    CPUInstructions.LoadFromAddress, 128
+                ]),
+                readOnly: true
+            }
         }
     ]);
 </script>
@@ -31,6 +45,11 @@
 
 <header class="primary-container on-primaty-container-text">
     header
+    <select>
+        {#each availableProjectsList as project}
+            <option>{project}</option>
+        {/each}
+    </select>
     <button on:click={() => SaveAll()}>DEBUG: save all files</button>
     <button on:click={() => m.Tick()}>DEBUG: tick</button>
 </header>

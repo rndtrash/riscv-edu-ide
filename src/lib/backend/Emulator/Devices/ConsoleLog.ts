@@ -2,7 +2,7 @@ import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
 
 export class ConsoleLog extends Device<number, number> {
     protected DeviceRead(ioTick: number, address: number): number | undefined {
-        console.log(`READ: ${address}`);
+        console.log(`READ: ${address.toString(16)}`);
         return undefined;
     }
 
@@ -11,7 +11,7 @@ export class ConsoleLog extends Device<number, number> {
     }
 
     protected DeviceWrite(ioTick: number, address: number, data: number): void {
-        console.log(`WRITE: ${address} = ${data}`);
+        console.log(`WRITE: ${address.toString(16)} = ${data.toString(16)}`);
     }
 }
 

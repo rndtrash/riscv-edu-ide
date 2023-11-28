@@ -54,15 +54,33 @@ export abstract class FSNode {
 }
 
 export class FSFolder extends FSNode {
-    protected children: FSNode[];
+    protected _children: FSNode[];
 
     constructor(name: string, changed?: number, parent?: FSFolder, children?: FSNode[]) {
         super(name, changed, parent);
 
-        this.children = children ?? new Array<FSNode>();
-        for (let child of this.children) {
+        this._children = children ?? new Array<FSNode>();
+        for (let child of this._children) {
             child.parent = this;
         }
+    }
+
+    public get children() {
+        return this._children;
+    }
+
+    public NewFile(name: string): FSFile {
+        const file = new FSFile(name);
+        file.parent = this;
+        this._children.push(file);
+        return file;
+    }
+
+    public NewFolder(name: string): FSFolder {
+        const folder = new FSFolder(name);
+        folder.parent = this;
+        this._children.push(folder);
+        return folder;
     }
 
     public async SaveWithContext(context: string[]): Promise<void> {
@@ -75,7 +93,7 @@ export class FSFolder extends FSNode {
             type: "folder",
             name: this.name,
             changed: this.changed,
-            children: this.children.map<string>((c) => c.name)
+            children: this._children.map<string>((c) => c.name)
         };
         let thisJsonString = JSON.stringify(thisJson);
         if (existingEntryJsonString !== null) {
@@ -86,19 +104,35 @@ export class FSFolder extends FSNode {
             localStorage.setItem(absolutePath, thisJsonString);
         }
 
-        for (let child of this.children) {
+        for (let child of this._children) {
             await child.SaveWithContext(newContext);
         }
     }
 }
 
 export class FSFile extends FSNode {
-    private contents: Uint8Array;
+    private _contents: Uint8Array;
 
     constructor(name: string, changed?: number | undefined, parent?: FSFolder | undefined, contents?: Uint8Array | undefined) {
         super(name, changed, parent);
 
-        this.contents = contents ?? new Uint8Array(0);
+        this._contents = contents ?? new Uint8Array(0);
+    }
+
+    public get contents(): Uint8Array {
+        return this._contents;
+    }
+
+    public set contents(contents: Uint8Array) {
+        this._contents = contents;
+    }
+
+    public set text(text: string) {
+        this._contents = new TextEncoder().encode(text);
+    }
+
+    public get text() : string {
+        return new TextDecoder().decode(this._contents);
     }
 
     protected static async bytesToBase64DataUrl(bytes: Uint8Array, type = "application/octet-stream"): Promise<string> {
@@ -127,7 +161,7 @@ export class FSFile extends FSNode {
             type: "file",
             name: this.name,
             changed: this.changed,
-            contentsBase64: await FSFile.bytesToBase64DataUrl(this.contents)
+            contentsBase64: await FSFile.bytesToBase64DataUrl(this._contents)
         };
         let thisJsonString = JSON.stringify(thisJson);
         localStorage.setItem(absolutePath, thisJsonString);
@@ -173,25 +207,97 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
 export let rootFolder: FSFolder;
 (async () => {
     if (browser) {
-        let rf: FSNode | undefined = undefined;
+        let rf: FSNode = new FSFolder("");
         try {
             rf = await parseNodesRecursive();
         } catch (e) {
             console.error(e);
         }
 
-        if (rf === undefined) {
-            rootFolder = new FSFolder("");
-            rootFolder.Save();
-        } else {
-            if (rf instanceof FSFolder)
-                rootFolder = rf;
-            else
-                throw `Wrong type of the root node (expected ${typeof FSFolder}, got ${typeof rf})`;
-        }
+        if (!(rf instanceof FSFolder))
+            throw `Wrong type of the root node (expected ${typeof FSFolder}, got ${typeof rf})`;
+
+        rootFolder = rf as FSFolder;
     }
 })();
 
 export function SaveAll() {
     rootFolder.Save();
+}
+
+function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, createFolders: boolean): FSFile | undefined {
+    let nextPathElement = path.shift();
+    if (nextPathElement === undefined)
+        return undefined;
+
+    // The last element of the path is the file that we need
+    if (path.length == 0) {
+        for (let child of currentFolder.children) {
+            if (child instanceof FSFile && child.name == nextPathElement)
+                return child;
+        }
+
+        if (!createFile)
+            return undefined;
+
+        return currentFolder.NewFile(nextPathElement);
+    }
+
+    let nextFolder: FSFolder | undefined = undefined;
+    for (let child of currentFolder.children) {
+        if (child instanceof FSFolder && child.name == nextPathElement)
+            nextFolder = child;
+    }
+    if (nextFolder === undefined) {
+        if (!createFolders || !createFile)
+            return undefined;
+
+        nextFolder = currentFolder.NewFolder(nextPathElement);
+    }
+
+    return OpenFile(nextFolder, path, createFile, createFolders);
+}
+
+export function Open(path: string, createFile: boolean = false, createFolders: boolean = true): FSFile | undefined {
+    let pathSplit = path.split(PATH_SEPARATOR);
+    if (pathSplit.length == 0 || pathSplit[0] != "" || pathSplit[pathSplit.length - 1] == "")
+        return undefined;
+
+    pathSplit.shift();
+    return OpenFile(rootFolder, pathSplit, createFile, createFolders);
+}
+
+function ExistsNode(currentFolder: FSFolder, path: string[]): boolean {
+    let nextPathElement = path.shift();
+    if (nextPathElement === undefined)
+        return false;
+
+    // The last element of the path is either a file or a folder
+    if (path.length == 0) {
+        for (let child of currentFolder.children) {
+            if (child.name == nextPathElement)
+                return true;
+        }
+
+        return false;
+    }
+
+    let nextFolder: FSFolder | undefined = undefined;
+    for (let child of currentFolder.children) {
+        if (child instanceof FSFolder && child.name == nextPathElement)
+            nextFolder = child;
+    }
+    if (nextFolder === undefined) {
+        return false;
+    }
+
+    return ExistsNode(nextFolder, path);
+}
+
+export function Exists(path: string): boolean {
+    let pathSplit = path.split(PATH_SEPARATOR);
+    if (pathSplit.length == 0 || pathSplit[0] != "")
+        return false;
+
+    return ExistsNode(rootFolder, pathSplit);
 }
