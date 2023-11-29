@@ -1,45 +1,9 @@
-<script lang="ts">
-    import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
-    import ToolBarRow from "$lib/components/ToolBarRow.svelte";
-    import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
-
-    let buttonsTop: SideBarToolPair[] = [
-        {
-            type: SideBarTest,
-            name: "Side Bar Test",
-            icon: "folder",
-            state: undefined
-        },
-        {
-            type: SideBarTest,
-            name: "Side Bar Test 2",
-            icon: "folder",
-            state: undefined
-        }];
-    export let sideBarToolTop: SideBarToolPair | undefined;
-
-    let buttonsBottom: SideBarToolPair[] = [
-        {
-            type: SideBarTest,
-            name: "Side Bar Test",
-            icon: "folder",
-            state: undefined
-        },
-        {
-            type: SideBarTest,
-            name: "Side Bar Test 2",
-            icon: "folder",
-            state: undefined
-        }];
-    export let sideBarToolBottom: SideBarToolPair | undefined;
-</script>
-
 <div class="button-column surface-variant on-surface-variant-text">
     <div class="top column">
-        <ToolBarRow bind:buttons={buttonsTop} bind:sideBarTool={sideBarToolTop}/>
+        <slot name="top"></slot>
     </div>
     <div class="bottom column">
-        <ToolBarRow bind:buttons={buttonsBottom} bind:sideBarTool={sideBarToolBottom}/>
+        <slot name="bottom"></slot>
     </div>
 </div>
 
@@ -51,8 +15,8 @@
     flex-flow: column nowrap;
     justify-content: space-between;
 
-    width: 80px;
-    padding: 12px;
+    width: 40px;
+    padding: 4px;
 
     box-sizing: border-box;
 
@@ -60,7 +24,7 @@
       display: flex;
       flex-flow: column nowrap;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
   }
 </style>

@@ -2,10 +2,14 @@
     import TabbedEditor from "$lib/components/TabbedEditor.svelte";
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
+    import {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
     import {SaveAll} from "$lib/backend/FileSystem";
     import {Machine} from "$lib/backend/Emulator/Machine";
     import {availableProjects} from "$lib/backend/ProjectManager";
     import {CPUInstructions, SimpleCPU} from "$lib/backend/Emulator/Masters/SimpleCPU";
+    import ToolBarRow from "$lib/components/ToolBarRow.svelte";
+    import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
+    import {writable} from "svelte/store";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -36,6 +40,56 @@
             }
         }
     ]);
+
+    let buttonsTopLeft: SideBarToolPair[] = [
+        {
+            type: SideBarTest,
+            name: "Side Bar Test",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        },
+        {
+            type: SideBarTest,
+            name: "Side Bar Test 2",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        }];
+
+    let buttonsBottomLeft: SideBarToolPair[] = [
+        {
+            type: SideBarTest,
+            name: "Side Bar Test",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        },
+        {
+            type: SideBarTest,
+            name: "Side Bar Test 2",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        }];
+
+    let buttonsTopRight: SideBarToolPair[] = [
+        {
+            type: SideBarTest,
+            name: "Side Bar Test",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        }];
+
+    let buttonsBottomRight: SideBarToolPair[] = [
+        {
+            type: SideBarTest,
+            name: "Side Bar Test",
+            icon: "folder",
+            iconStatus: writable(ButtonStatusIcon.None),
+            state: undefined
+        }];
 </script>
 
 <svelte:head>
@@ -55,12 +109,17 @@
 </header>
 
 <main>
-    <SideBar bind:sideBarToolTop={sideBarToolTopLeft} bind:sideBarToolBottom={sideBarToolBottomLeft}/>
+    <SideBar>
+        <ToolBarRow bind:buttons={buttonsTopLeft} bind:sideBarTool={sideBarToolTopLeft} slot="top"/>
+        <ToolBarRow bind:buttons={buttonsBottomLeft} bind:sideBarTool={sideBarToolBottomLeft} slot="bottom"/>
+    </SideBar>
 
     <div class="grid">
         {#if (sideBarToolTopLeft !== undefined)}
             <div class="tool-window left surface-variant on-surface-variant-text">
-                <svelte:component this={sideBarToolTopLeft.type} bind:state={sideBarToolTopLeft.state}/>
+                <svelte:component this={sideBarToolTopLeft.type}
+                                  bind:state={sideBarToolTopLeft.state}
+                                  bind:iconStatus={sideBarToolTopLeft.iconStatus}/>
             </div>
         {/if}
 
@@ -70,7 +129,9 @@
 
         {#if (sideBarToolTopRight !== undefined)}
             <div class="tool-window right">
-                <svelte:component this={sideBarToolTopRight.type} bind:state={sideBarToolTopRight.state}/>
+                <svelte:component this={sideBarToolTopRight.type}
+                                  bind:state={sideBarToolTopRight.state}
+                                  bind:iconStatus={sideBarToolTopRight.iconStatus}/>
             </div>
         {/if}
 
@@ -79,19 +140,26 @@
             <div class="bottom">
                 {#if (sideBarToolBottomLeft !== undefined)}
                     <div class="left">
-                        <svelte:component this={sideBarToolBottomLeft.type} bind:state={sideBarToolBottomLeft.state}/>
+                        <svelte:component this={sideBarToolBottomLeft.type}
+                                          bind:state={sideBarToolBottomLeft.state}
+                                          bind:iconStatus={sideBarToolBottomLeft.iconStatus}/>
                     </div>
                 {/if}
                 {#if (sideBarToolBottomRight !== undefined)}
                     <div class="right">
-                        <svelte:component this={sideBarToolBottomRight.type} bind:state={sideBarToolBottomRight.state}/>
+                        <svelte:component this={sideBarToolBottomRight.type}
+                                          bind:state={sideBarToolBottomRight.state}
+                                          bind:iconStatus={sideBarToolBottomRight.iconStatus}/>
                     </div>
                 {/if}
             </div>
         {/if}
     </div>
 
-    <SideBar bind:sideBarToolTop={sideBarToolTopRight} bind:sideBarToolBottom={sideBarToolBottomRight}/>
+    <SideBar>
+        <ToolBarRow bind:buttons={buttonsTopRight} bind:sideBarTool={sideBarToolTopRight} slot="top"/>
+        <ToolBarRow bind:buttons={buttonsBottomRight} bind:sideBarTool={sideBarToolBottomRight} slot="bottom"/>
+    </SideBar>
 </main>
 
 <footer class="tertiary-container on-tertiary-container-text">

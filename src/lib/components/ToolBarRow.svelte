@@ -11,6 +11,7 @@
 {#each buttons as button, index}
     <IconButton icon={button.icon}
                 alt={button.name}
+                status={button.iconStatus}
                 active={currentButton === index}
                 on:click={() => currentButton = currentButton === index ? -1 : index}/>
 {/each}
