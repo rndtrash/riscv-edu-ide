@@ -26,9 +26,9 @@ export class Machine {
     }
 
     public Tick(): void {
+        this._master.DoIO(this.tick);
         this._master.Tick(this.tick);
         this._masterBus.Tick(this.tick);
-        this._master.DoIO(this.tick);
         this._tick++;
     }
 }

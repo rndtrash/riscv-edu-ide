@@ -100,6 +100,8 @@ export class SimpleCPU extends Master<number, number> {
                 }
                 break;
         }
+
+        console.log(`scpu: state: reg=${this.register}`);
     }
 
     protected MasterIO(ioTick: number): void {
