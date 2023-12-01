@@ -1,5 +1,7 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
 
+const RAM32_NAME: string = "ram32";
+
 export class RAM32 extends Device<number, number> {
     protected position: number;
     protected array: Uint32Array;
@@ -30,9 +32,18 @@ export class RAM32 extends Device<number, number> {
         console.log(`ram write @ ${address.toString(16)} = ${data.toString(16)}`);
         this.array[((address - this.position) >> 4) << 4] = data;
     }
+
+    public serialize(): { name: string; context: any } {
+        return {
+            name: RAM32_NAME, context: {
+                address: this.position,
+                size: this.array.length
+            }
+        };
+    }
 }
 
-MasterBusDeviceRegistry["ram32"] = (context: {
+MasterBusDeviceRegistry[RAM32_NAME] = (context: {
     address: number,
     size: number
 }) => new RAM32(context.address, context.size);

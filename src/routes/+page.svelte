@@ -4,42 +4,21 @@
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
     import {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
     import {SaveAll} from "$lib/backend/FileSystem";
-    import {Machine} from "$lib/backend/Emulator/Machine";
-    import {availableProjects} from "$lib/backend/ProjectManager";
-    import {CPUInstructions, SimpleCPU} from "$lib/backend/Emulator/Masters/SimpleCPU";
+    import {
+        allProjects,
+        currentProject,
+        makeProject,
+        openProject
+    } from "$lib/backend/ProjectManager";
     import ToolBarRow from "$lib/components/ToolBarRow.svelte";
     import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
     import {writable} from "svelte/store";
+    import SideBarMachineOverview from "$lib/side-bar/SideBarMachineOverview.svelte";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
     let sideBarToolBottomLeft: SideBarToolPair | undefined;
     let sideBarToolBottomRight: SideBarToolPair | undefined;
-
-    let availableProjectsList = availableProjects();
-
-    let m: Machine = new Machine(new SimpleCPU(), [
-        {
-            name: "consolelog",
-            context: undefined
-        }, {
-            name: "ram32",
-            context: {address: 128, size: 128}
-        }, {
-            name: "rom32",
-            context: {
-                address: 0,
-                contents: new Uint32Array([
-                    CPUInstructions.Noop,
-                    CPUInstructions.LoadImmediate, 5,
-                    CPUInstructions.AddToRegister, 3,
-                    CPUInstructions.StoreAtAddress, 128,
-                    CPUInstructions.LoadFromAddress, 128
-                ]),
-                readOnly: true
-            }
-        }
-    ]);
 
     let buttonsTopLeft: SideBarToolPair[] = [
         {
@@ -75,9 +54,9 @@
 
     let buttonsTopRight: SideBarToolPair[] = [
         {
-            type: SideBarTest,
-            name: "Side Bar Test",
-            icon: "folder",
+            type: SideBarMachineOverview,
+            name: "Machine overview",
+            icon: "developer_board",
             iconStatus: writable(ButtonStatusIcon.None),
             state: undefined
         }];
@@ -90,6 +69,10 @@
             iconStatus: writable(ButtonStatusIcon.None),
             state: undefined
         }];
+
+    let projectNameInput: HTMLInputElement;
+    let projectNameSelected: string = "";
+    $: if (projectNameSelected != "") openProject(projectNameSelected);
 </script>
 
 <svelte:head>
@@ -99,13 +82,19 @@
 
 <header class="primary-container on-primaty-container-text">
     header
-    <select>
-        {#each availableProjectsList as project}
+    <select bind:value={projectNameSelected}>
+        <option disabled selected value> -- select a project -- </option>
+        {#each $allProjects as project}
             <option>{project}</option>
         {/each}
     </select>
     <button on:click={() => SaveAll()}>DEBUG: save all files</button>
-    <button on:click={() => m.Tick()}>DEBUG: tick</button>
+    {#if ($currentProject !== undefined)}
+        <button on:click={() => $currentProject?.MachineTick()}>DEBUG: tick</button>
+    {:else}
+        <input type="text" placeholder="project name" bind:this={projectNameInput}>
+        <button on:click={() => makeProject(projectNameInput.value)}>DEBUG: make a new project</button>
+    {/if}
 </header>
 
 <main>

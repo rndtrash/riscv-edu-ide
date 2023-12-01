@@ -1,4 +1,6 @@
-import {Master} from "$lib/backend/Emulator/Bus";
+import {Master, MasterBusMasterRegistry} from "$lib/backend/Emulator/Bus";
+import type { ComponentType } from "svelte";
+import DeviceVisualSimpleCPU from "$lib/device-visuals/DeviceVisualSimpleCPU.svelte";
 
 enum CPUState {
     ReadInstruction,
@@ -16,7 +18,16 @@ export enum CPUInstructions {
     LoadFromAddress
 }
 
+const SIMPLECPU_NAME: string = "simplecpu";
+
+export interface ISimpleCPUState {
+    state: string;
+    ip: number;
+    register: number;
+}
+
 export class SimpleCPU extends Master<number, number> {
+    public svelteComponent: ComponentType | undefined = DeviceVisualSimpleCPU;
 
     private ip: number = 0;
     private dataRq: number = 0;
@@ -26,7 +37,7 @@ export class SimpleCPU extends Master<number, number> {
     private currentInstruction: CPUInstructions = 0;
     private register: number = 0;
 
-    protected MasterTick(tick: number): void {
+    protected DeviceTick(tick: number): void {
         console.log(`scpu: tick, state ${CPUState[this.state]}`);
 
         switch (this.state) {
@@ -133,4 +144,18 @@ export class SimpleCPU extends Master<number, number> {
             }
         }
     }
+
+    public getState(): ISimpleCPUState {
+        return {
+            state: CPUState[this.state],
+            register: this.register,
+            ip: this.ip
+        };
+    }
+
+    public serialize(): { name: string; context: any } {
+        return {name: SIMPLECPU_NAME, context: undefined};
+    }
 }
+
+MasterBusMasterRegistry[SIMPLECPU_NAME] = () => new SimpleCPU();

@@ -14,7 +14,7 @@ interface IFSFolderJson extends IFSNodeJson {
 }
 
 interface IFSFileJson extends IFSNodeJson {
-    contentsBase64: string;
+    contentsUri: string;
 }
 
 export abstract class FSNode {
@@ -26,6 +26,10 @@ export abstract class FSNode {
         this.name = name;
         this.changed = changed ?? Date.now();
         this.parent = parent;
+    }
+
+    public Touch(): void {
+        this.changed = Date.now();
     }
 
     private getParentChain(): FSFolder[] {
@@ -73,6 +77,7 @@ export class FSFolder extends FSNode {
         const file = new FSFile(name);
         file.parent = this;
         this._children.push(file);
+        this.Touch();
         return file;
     }
 
@@ -80,6 +85,7 @@ export class FSFolder extends FSNode {
         const folder = new FSFolder(name);
         folder.parent = this;
         this._children.push(folder);
+        this.Touch();
         return folder;
     }
 
@@ -97,7 +103,7 @@ export class FSFolder extends FSNode {
         };
         let thisJsonString = JSON.stringify(thisJson);
         if (existingEntryJsonString !== null) {
-            let existingEntryJson: IFSNodeJson = JSON.parse(existingEntryJsonString);
+            let existingEntryJson: IFSFolderJson = JSON.parse(existingEntryJsonString);
             if (existingEntryJson.changed !== thisJson.changed)
                 localStorage.setItem(absolutePath, thisJsonString);
         } else {
@@ -125,14 +131,15 @@ export class FSFile extends FSNode {
 
     public set contents(contents: Uint8Array) {
         this._contents = contents;
-    }
-
-    public set text(text: string) {
-        this._contents = new TextEncoder().encode(text);
+        this.Touch();
     }
 
     public get text() : string {
         return new TextDecoder().decode(this._contents);
+    }
+
+    public set text(text: string) {
+        this.contents = new TextEncoder().encode(text);
     }
 
     protected static async bytesToBase64DataUrl(bytes: Uint8Array, type = "application/octet-stream"): Promise<string> {
@@ -161,7 +168,7 @@ export class FSFile extends FSNode {
             type: "file",
             name: this.name,
             changed: this.changed,
-            contentsBase64: await FSFile.bytesToBase64DataUrl(this._contents)
+            contentsUri: await FSFile.bytesToBase64DataUrl(this._contents)
         };
         let thisJsonString = JSON.stringify(thisJson);
         localStorage.setItem(absolutePath, thisJsonString);
@@ -192,7 +199,7 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
                 fileJson.changed,
                 undefined,
                 new Uint8Array(
-                    await (await fetch("data:application/octet;base64," + fileJson.contentsBase64)).arrayBuffer()
+                    await (await fetch(fileJson.contentsUri)).arrayBuffer()
                 )
             );
         }
@@ -299,5 +306,6 @@ export function Exists(path: string): boolean {
     if (pathSplit.length == 0 || pathSplit[0] != "")
         return false;
 
+    pathSplit.shift();
     return ExistsNode(rootFolder, pathSplit);
 }

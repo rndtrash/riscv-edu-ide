@@ -3,7 +3,7 @@
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
     export let state: Monaco.editor.ITextModel | undefined;
-    export let hasChanges: boolean = false;
+    export let hasChanges: boolean;
     export let filePath: string;
 
     let editor: Monaco.editor.IStandaloneCodeEditor;

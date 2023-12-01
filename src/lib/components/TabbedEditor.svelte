@@ -2,6 +2,8 @@
     import type {EditorTabPair} from "$lib/editors/EditorTab";
     import EditorTest from "$lib/editors/EditorTest.svelte";
     import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
+    import {currentProject} from "$lib/backend/ProjectManager";
+    import {get} from "svelte/store";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
@@ -37,6 +39,11 @@
 <div class="tabbed-editor">
     {#if (tabs.length === 0)}
         <h1>Welcome to the RISC-V Edu IDE!</h1>
+
+        {#if (get(currentProject) === undefined)}
+            Select a project
+        {/if}
+
         <button on:click={addNewTab}>
             Add a tab
         </button>

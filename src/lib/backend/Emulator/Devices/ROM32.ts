@@ -1,5 +1,7 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
 
+const ROM32_NAME: string = "rom32";
+
 export class ROM32 extends Device<number, number> {
     protected position: number;
     protected contents: Uint32Array;
@@ -34,10 +36,20 @@ export class ROM32 extends Device<number, number> {
         console.log(`rom write @ ${address.toString(16)} = ${data.toString(16)}`);
         this.contents[((address - this.position) >> 4) << 4] = data;
     }
+
+    public serialize(): { name: string; context: any } {
+        return {
+            name: ROM32_NAME, context: {
+                address: this.position,
+                contents: Array.from<number>(this.contents),
+                readOnly: this.readOnly
+            }
+        };
+    }
 }
 
-MasterBusDeviceRegistry["rom32"] = (context: {
+MasterBusDeviceRegistry[ROM32_NAME] = (context: {
     address: number,
-    contents: Uint32Array,
+    contents: Iterable<number>,
     readOnly: boolean
-}) => new ROM32(context.address, context.contents, context.readOnly);
+}) => new ROM32(context.address, new Uint32Array(context.contents), context.readOnly);
