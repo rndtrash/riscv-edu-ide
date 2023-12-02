@@ -30,6 +30,9 @@ export abstract class FSNode {
 
     public Touch(): void {
         this.changed = Date.now();
+
+        if (this.parent !== undefined)
+            this.parent.Touch();
     }
 
     private getParentChain(): FSFolder[] {
@@ -44,8 +47,8 @@ export abstract class FSNode {
         return chain;
     }
 
-    private buildFullPath(): string {
-        return PATH_PREFIX + this.getParentChain().map<string>((f) => f.name).join(PATH_SEPARATOR);
+    public FullPath(): string {
+        return PATH_PREFIX + [...this.getParentChain(), this].map<string>((f) => f.name).join(PATH_SEPARATOR);
     }
 
     public Save(): void {
@@ -134,8 +137,11 @@ export class FSFile extends FSNode {
         this.Touch();
     }
 
-    public get text() : string {
-        return new TextDecoder().decode(this._contents);
+    /*
+     * Throws an exception if the file is not a valid UTF-8 text
+     */
+    public get text(): string {
+        return new TextDecoder(undefined, {fatal: true}).decode(this._contents);
     }
 
     public set text(text: string) {

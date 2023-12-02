@@ -3,7 +3,7 @@
     import SideBar from "$lib/components/SideBar.svelte";
     import type {SideBarToolPair} from "$lib/side-bar/SideBarTool";
     import {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
-    import {SaveAll} from "$lib/backend/FileSystem";
+    import {FSFile, FSFolder, FSNode, SaveAll} from "$lib/backend/FileSystem";
     import {
         allProjects,
         currentProject,
@@ -15,6 +15,11 @@
     import {writable} from "svelte/store";
     import SideBarMachineOverview from "$lib/side-bar/SideBarMachineOverview.svelte";
     import SideBarProjectBrowser from "$lib/side-bar/SideBarProjectBrowser.svelte";
+    import type {EditorTabConstraint} from "$lib/editors/EditorTab";
+    import EditorTest from "$lib/editors/EditorTest.svelte";
+    import type {ComponentType} from "svelte";
+    import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
+    import {makeState} from "$lib/editors/EditorMonaco";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -68,6 +73,51 @@
     let projectNameInput: HTMLInputElement;
     let projectNameSelected: string = "";
     $: if (projectNameSelected != "") openProject(projectNameSelected);
+
+    let tabbedEditor: TabbedEditor;
+
+    function openFile(e: CustomEvent): void {
+        const node = e.detail as FSNode;
+        if (node instanceof FSFolder) {
+            console.log("tried to open a folder, epic fail");
+            return;
+        }
+
+        const file = node as FSFile;
+        const filePath = file.FullPath();
+        const extension = file.name.split(".").pop();
+        console.log("penis cum", file);
+
+        if (tabbedEditor.focusIfAvailable(filePath)) {
+            return;
+        }
+
+        let isText = true;
+        let text: string = "";
+        try {
+            text = file.text;
+        } catch (e) {
+            console.error(e);
+
+            if (e instanceof TypeError)
+                isText = false;
+        }
+
+        let editor: ComponentType<EditorTabConstraint>;
+        let state: any = undefined;
+        if (isText) {
+            switch (extension) {
+                default:
+                    editor = EditorMonaco;
+                    state = makeState(file, undefined);
+            }
+        } else {
+            // TODO: open a binary editor
+            editor = EditorTest;
+        }
+
+        tabbedEditor.addNewTab(editor, filePath, state);
+    }
 </script>
 
 <svelte:head>
@@ -92,7 +142,7 @@
     {/if}
 </header>
 
-<main>
+<main on:fsOpen={openFile}>
     <SideBar>
         <ToolBarRow bind:buttons={buttonsTopLeft} bind:sideBarTool={sideBarToolTopLeft} slot="top"/>
         <ToolBarRow bind:buttons={buttonsBottomLeft} bind:sideBarTool={sideBarToolBottomLeft} slot="bottom"/>
@@ -108,7 +158,7 @@
         {/if}
 
         <div class="center">
-            <TabbedEditor/>
+            <TabbedEditor bind:this={tabbedEditor}/>
         </div>
 
         {#if (sideBarToolTopRight !== undefined)}

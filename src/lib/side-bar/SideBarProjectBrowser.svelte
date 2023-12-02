@@ -4,31 +4,26 @@
     import type {Writable} from "svelte/store";
     import {get} from "svelte/store";
     import {currentProject} from "$lib/backend/ProjectManager";
-    import ProjectBrowserNodeListing from "$lib/components/ProjectBrowserNodeListing.svelte";
+    import ProjectBrowserNodeListing from "$lib/components/ProjectBrowserFolderListing.svelte";
     import type {FSNode} from "$lib/backend/FileSystem";
 
-    export let state: { text: string } | undefined;
+    export let state: { selected: FSNode[] } | undefined;
     export let iconStatus: Writable<ButtonStatusIcon>;
 
     onMount(() => {
-        console.log("onmount");
         if (state === undefined) {
-            console.log("undefined");
             // TODO: save the open folders
-            state = {text: "Hello!"};
+            state = {selected: []};
         }
-        console.log(state, get(iconStatus));
     });
-
-    let selected: FSNode[] = [];
 </script>
 
-<div on:fsSelect={(file) => console.log(file)}>
+<div>
     {#if (state !== undefined)}
         {#if $currentProject === undefined}
             Please, open a project
         {:else}
-            <ProjectBrowserNodeListing folder={$currentProject.folder} bind:selected/>
+            <ProjectBrowserNodeListing folder={$currentProject.folder} bind:selected={state.selected}/>
         {/if}
     {/if}
 </div>

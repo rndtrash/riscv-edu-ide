@@ -1,36 +1,38 @@
 <script lang="ts">
-    import {FSFolder, FSNode} from "$lib/backend/FileSystem";
-    import {createEventDispatcher} from "svelte";
+    import type {FSNode} from "$lib/backend/FileSystem";
 
-    export let folder: FSFolder;
+    export let node: FSNode;
     export let selected: FSNode[];
 
-    const dispatch = createEventDispatcher();
+    let ref: HTMLButtonElement;
+
+    function onNodeClick(event: MouseEvent) {
+        if (event.ctrlKey) {
+            const nodeIndex = selected.indexOf(node);
+            if (nodeIndex === -1)
+                selected = [...selected, node];
+            else
+                selected.splice(nodeIndex, 1);
+        } else {
+            selected = [node];
+        }
+    }
+
+    function onNodeDoubleClick(event: MouseEvent) {
+        selected = [];
+        ref.dispatchEvent(new CustomEvent('fsOpen', {detail: node, bubbles: true}));
+    }
 </script>
 
-<div class="folder">
-    <button on:click={(e) => dispatch('fsSelect', folder)}>{folder.name}</button>
-    <div class="children">
-        {#each folder.children as child}
-            {#if child instanceof FSFolder}
-                <svelte:self folder={child} bind:selected on:fsSelect/>
-            {:else}
-                <button on:click={(e) => dispatch('fsSelect', child)}>{child.name}</button>
-            {/if}
-        {/each}
-    </div>
-</div>
+<button bind:this={ref} on:click={onNodeClick} on:dblclick={onNodeDoubleClick}
+        class="node {selected.indexOf(node) === -1 ? '' : 'selected'}">
+    {node.name}
+</button>
 
 <style lang="scss">
-  .folder {
-    display: flex;
-    flex-flow: column nowrap;
-
-    > .children {
-      display: flex;
-      flex-flow: column nowrap;
-
-      padding-left: 16px;
+  .node {
+    &.selected {
+      background-color: #c2f18d;
     }
   }
 </style>

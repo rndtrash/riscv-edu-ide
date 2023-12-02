@@ -1,6 +1,7 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
+    import {makeState} from "$lib/editors/EditorMonaco";
 
     export let state: Monaco.editor.ITextModel | undefined;
     export let hasChanges: boolean;
@@ -17,11 +18,8 @@
 
         // Your monaco instance is ready, let's display some code!
         editor = monaco.editor.create(editorContainer, {automaticLayout: true});
-        state ??= monaco.editor.createModel(
-            "console.log('Hello from Monaco! (the editor, not the city...)')",
-            'javascript'
-        );
-        editor.setModel(state);
+        state ??= makeState();
+        editor.setModel(state!);
 
         editor.onDidChangeModelContent(() => hasChanges = true);
     });

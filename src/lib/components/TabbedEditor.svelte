@@ -1,9 +1,11 @@
 <script lang="ts">
-    import type {EditorTabPair} from "$lib/editors/EditorTab";
+    import type {EditorTabConstraint, EditorTabPair} from "$lib/editors/EditorTab";
     import EditorTest from "$lib/editors/EditorTest.svelte";
     import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
     import {currentProject} from "$lib/backend/ProjectManager";
     import {get} from "svelte/store";
+    import type {FSFile} from "$lib/backend/FileSystem";
+    import type {ComponentType} from "svelte";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
@@ -13,7 +15,7 @@
     let editor: EditorTabPair | undefined;
     $: editor = currentTab >= 0 ? tabs[currentTab] : undefined;
 
-    function addNewTab() {
+    function addNewExampleTab() {
         tabs = [...tabs, {
             type: EditorTest,
             icon: "",
@@ -34,6 +36,39 @@
         }];
         currentTab = tabs.length - 1;
     }
+
+    export function hasTabWithFile(file: FSFile): boolean {
+        const filePath = file.FullPath();
+        for (const tab of tabs) {
+            if (tab.filePath == filePath)
+                return true;
+        }
+
+        return false;
+    }
+
+    export function focusIfAvailable(filePath: string): boolean {
+        for (let i = 0; i < tabs.length; i++) {
+            const tab = tabs[i];
+            if (tab.filePath == filePath) {
+                currentTab = i;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    export function addNewTab(type: ComponentType<EditorTabConstraint>, filePath: string, state: any) {
+        tabs = [...tabs, {
+            type: type,
+            icon: "",
+            hasChanges: false,
+            filePath: filePath,
+            state: state
+        }];
+        currentTab = tabs.length - 1;
+    }
 </script>
 
 <div class="tabbed-editor">
@@ -44,7 +79,7 @@
             Select a project
         {/if}
 
-        <button on:click={addNewTab}>
+        <button on:click={addNewExampleTab}>
             Add a tab
         </button>
         <button on:click={addNewMonacoTab}>
@@ -59,7 +94,7 @@
                 </button>
             {/each}
 
-            <button on:click={addNewTab}>
+            <button on:click={addNewExampleTab}>
                 Add a tab
             </button>
             <button on:click={addNewMonacoTab}>
