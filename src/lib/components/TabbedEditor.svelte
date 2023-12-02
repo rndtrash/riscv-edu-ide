@@ -69,7 +69,15 @@
         }];
         currentTab = tabs.length - 1;
     }
+
+    function handleSave(): void {
+        for (const tab of tabs) {
+            tab.state?.save();
+        }
+    }
 </script>
+
+<svelte:window on:kcSave={handleSave}/>
 
 <div class="tabbed-editor">
     {#if (tabs.length === 0)}

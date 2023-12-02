@@ -1,5 +1,6 @@
 import {Bus, Device, Master, MasterBusDeviceRegistry, MasterBusMasterRegistry} from "$lib/backend/Emulator/Bus";
 import "$lib/backend/Emulator/Devices/All";
+import "$lib/backend/Emulator/Masters/All";
 
 export interface ISystemConfiguration {
     master: { name: string; context: any },

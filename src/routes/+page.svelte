@@ -118,14 +118,32 @@
 
         tabbedEditor.addNewTab(editor, filePath, state);
     }
+
+    function processKeyCombo(event: KeyboardEvent): boolean {
+        if (event.ctrlKey) {
+            switch (event.code) {
+                case "KeyS":
+                    event.preventDefault();
+                    window.dispatchEvent(new CustomEvent("kcSave"));
+                    break;
+
+                default:
+                    return true;
+            }
+        }
+
+        return false;
+    }
 </script>
+
+<svelte:body on:keydown={processKeyCombo}/>
 
 <svelte:head>
     <title>RISC-V Edu IDE</title>
     <meta name="description" content="RISC-V Edu IDE"/>
 </svelte:head>
 
-<header class="primary-container on-primaty-container-text">
+<header class="primary-container on-primary-container-text">
     header
     <select bind:value={projectNameSelected}>
         <option disabled selected value>-- select a project --</option>
