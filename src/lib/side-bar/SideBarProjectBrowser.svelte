@@ -5,6 +5,7 @@
     import {get} from "svelte/store";
     import {currentProject} from "$lib/backend/ProjectManager";
     import ProjectBrowserNodeListing from "$lib/components/ProjectBrowserNodeListing.svelte";
+    import type {FSNode} from "$lib/backend/FileSystem";
 
     export let state: { text: string } | undefined;
     export let iconStatus: Writable<ButtonStatusIcon>;
@@ -18,14 +19,16 @@
         }
         console.log(state, get(iconStatus));
     });
+
+    let selected: FSNode[] = [];
 </script>
 
-{#if (state !== undefined)}
-    <div>
+<div on:fsSelect={(file) => console.log(file)}>
+    {#if (state !== undefined)}
         {#if $currentProject === undefined}
             Please, open a project
         {:else}
-            <ProjectBrowserNodeListing folder={$currentProject.folder}/>
+            <ProjectBrowserNodeListing folder={$currentProject.folder} bind:selected/>
         {/if}
-    </div>
-{/if}
+    {/if}
+</div>
