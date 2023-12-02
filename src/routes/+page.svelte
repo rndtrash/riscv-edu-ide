@@ -14,6 +14,7 @@
     import SideBarTest from "$lib/side-bar/SideBarTest.svelte";
     import {writable} from "svelte/store";
     import SideBarMachineOverview from "$lib/side-bar/SideBarMachineOverview.svelte";
+    import SideBarProjectBrowser from "$lib/side-bar/SideBarProjectBrowser.svelte";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -22,19 +23,13 @@
 
     let buttonsTopLeft: SideBarToolPair[] = [
         {
-            type: SideBarTest,
-            name: "Side Bar Test",
+            type: SideBarProjectBrowser,
+            name: "Project Browser",
             icon: "folder",
             iconStatus: writable(ButtonStatusIcon.None),
             state: undefined
-        },
-        {
-            type: SideBarTest,
-            name: "Side Bar Test 2",
-            icon: "folder",
-            iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
-        }];
+        }
+    ];
 
     let buttonsBottomLeft: SideBarToolPair[] = [
         {
@@ -83,7 +78,7 @@
 <header class="primary-container on-primaty-container-text">
     header
     <select bind:value={projectNameSelected}>
-        <option disabled selected value> -- select a project -- </option>
+        <option disabled selected value>-- select a project --</option>
         {#each $allProjects as project}
             <option>{project}</option>
         {/each}
