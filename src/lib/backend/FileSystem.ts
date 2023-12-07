@@ -1,4 +1,5 @@
 import {browser} from '$app/environment';
+import {TypedEvent} from "$lib/EventEmitter";
 
 const PATH_SEPARATOR: string = "/";
 const PATH_PREFIX: string = "file:";
@@ -21,11 +22,18 @@ export abstract class FSNode {
     public name: string;
     protected changed: number;
     public parent: FSFolder | undefined; // TODO: hide it. I tried setting it to protected but the TS has a problem with that
+    protected _changeEventHandlers: TypedEvent<FSNode>;
 
     protected constructor(name: string, changed?: number, parent?: FSFolder) {
+        this._changeEventHandlers = new TypedEvent<FSNode>();
+
         this.name = name;
         this.changed = changed ?? Date.now();
         this.parent = parent;
+    }
+
+    public get changeEvent() {
+        return this._changeEventHandlers;
     }
 
     public Touch(): void {
@@ -33,6 +41,8 @@ export abstract class FSNode {
 
         if (this.parent !== undefined)
             this.parent.Touch();
+
+        this.changeEvent.emit(this);
     }
 
     private getParentChain(): FSFolder[] {

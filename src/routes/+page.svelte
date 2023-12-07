@@ -19,7 +19,9 @@
     import EditorTest from "$lib/editors/EditorTest.svelte";
     import type {ComponentType} from "svelte";
     import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
-    import {makeState} from "$lib/editors/EditorMonaco";
+    import {makeMonacoState} from "$lib/editors/EditorMonaco";
+    import EditorHex from "$lib/editors/EditorHex.svelte";
+    import {makeHexState} from "$lib/editors/EditorHex";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -107,13 +109,19 @@
         let state: any = undefined;
         if (isText) {
             switch (extension) {
+                case "rvedu":
+                    // TODO: a proper configuration editor
+                    editor = EditorMonaco;
+                    state = makeMonacoState(file, "json");
+                    break;
+
                 default:
                     editor = EditorMonaco;
-                    state = makeState(file, undefined);
+                    state = makeMonacoState(file, undefined);
             }
         } else {
-            // TODO: open a binary editor
-            editor = EditorTest;
+            editor = EditorHex;
+            state = makeHexState(file);
         }
 
         tabbedEditor.addNewTab(editor, filePath, state);

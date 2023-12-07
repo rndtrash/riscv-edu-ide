@@ -1,6 +1,7 @@
 <script lang="ts">
     import {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
     import type {Writable} from "svelte/store";
+    import Icon from "$lib/components/Icon.svelte";
 
     export let icon: string;
     export let status: Writable<ButtonStatusIcon>;
@@ -21,10 +22,7 @@
 
 <button class="{active ? `${theme}-container on-${theme}-container-text` : 'transparent'} button" on:click>
     <div class="hover">
-        <picture>
-            <source srcset="/icons/{icon}.svg" type="image/svg+xml"/>
-            <img src="/icons/{icon}.png" {alt}/>
-        </picture>
+        <Icon {icon} {alt}/>
         {$status}
 
         {#if ($status !== ButtonStatusIcon.None)}

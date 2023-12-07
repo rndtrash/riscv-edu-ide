@@ -6,6 +6,7 @@
     import {get} from "svelte/store";
     import type {FSFile} from "$lib/backend/FileSystem";
     import type {ComponentType} from "svelte";
+    import {SaveAll} from "$lib/backend/FileSystem";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
@@ -74,6 +75,9 @@
         for (const tab of tabs) {
             tab.state?.save();
         }
+
+        // TODO: not sure if it's the right way to do that
+        SaveAll();
     }
 </script>
 

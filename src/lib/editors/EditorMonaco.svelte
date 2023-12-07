@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onDestroy, onMount} from 'svelte';
     import type * as Monaco from 'monaco-editor/esm/vs/editor/editor.api';
-    import {makeState} from "$lib/editors/EditorMonaco";
+    import {makeMonacoState} from "$lib/editors/EditorMonaco";
     import type {EditorMonacoState} from "$lib/editors/EditorMonaco";
 
     export let state: EditorMonacoState | undefined;
@@ -19,10 +19,10 @@
 
         // Your monaco instance is ready, let's display some code!
         editor = monaco.editor.create(editorContainer, {automaticLayout: true});
-        state ??= makeState();
+        state ??= makeMonacoState();
         state.save = () => {
-            if (state !== undefined && state.file !== undefined) {
-                state.file.text = state.model?.getValue();
+            if (hasChanges && state !== undefined && state.file !== undefined) {
+                state.file.text = state.model.getValue();
                 state.file.Save();
                 hasChanges = false;
             }

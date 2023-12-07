@@ -4,6 +4,7 @@ import {rootFolder} from "$lib/backend/FileSystem";
 import {Machine} from "$lib/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "$lib/backend/Emulator/Machine";
 import {CPUInstructions} from "$lib/backend/Emulator/Masters/SimpleCPU";
+import type {IDisposable} from "$lib/EventEmitter";
 
 export class Project {
     protected _machine: Machine;
@@ -64,6 +65,24 @@ export const ExampleProjects = ['/example-projects/hellorld.rvedu'];
 
 export const currentProject = writable<Project | undefined>(undefined);
 export const currentTick = writable<number>(0);
+let currentProjectChangeEvent: IDisposable | undefined = undefined;
+
+function listenToProjectChange() {
+    currentProjectChangeEvent = get(currentProject)?.folder.changeEvent.on(reloadProject);
+}
+
+export function reloadProject(): void {
+    const project = get(currentProject);
+    if (project === undefined) {
+        console.error("Nothing to reload.");
+        return;
+    }
+
+    const projectFolder: string = project.folder.name;
+    currentProjectChangeEvent = undefined;
+    currentProject.set(undefined);
+    openProject(projectFolder);
+}
 
 export function makeProject(folderName: string): void {
     SaveAll();
@@ -106,8 +125,7 @@ export function makeProject(folderName: string): void {
             ]
         }
     }, projectFile));
-
-    allProjects.set(availableProjects());
+    listenToProjectChange();
 }
 
 export function openProject(folderName: string): void {
@@ -120,9 +138,11 @@ export function openProject(folderName: string): void {
         throw "Invalid project";
 
     currentProject.set(Project.FromFile(projectFile));
+    listenToProjectChange();
 }
 
 export function closeProject(): void {
+    currentProjectChangeEvent = undefined;
     get(currentProject)?.Save();
     currentProject.set(undefined);
 }
@@ -141,11 +161,16 @@ export const allProjects = writable<string[]>([]);
 const rootFolderInterval = setInterval(() => {
     if (rootFolder !== undefined) {
         clearInterval(rootFolderInterval);
-        allProjects.set(availableProjects());
+        rootFolder.changeEvent.on(updateAvailableProjects);
+        updateAvailableProjects();
         return;
     }
     console.error("root folder is not ready yet");
 }, 200);
+
+function updateAvailableProjects(): void {
+    allProjects.set(availableProjects());
+}
 
 function availableProjects(): string[] {
     let projects = Array.of<string>();

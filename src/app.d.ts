@@ -10,7 +10,8 @@ declare global {
 
 	namespace svelteHTML {
 		interface HTMLAttributes<T> {
-			'on:fsOpen'?: (event: CustomEvent) => void
+			'on:fsOpen'?: (event: CustomEvent) => void,
+			'on:kcSave'?: (event: CustomEvent) => void
 		}
 	}
 }

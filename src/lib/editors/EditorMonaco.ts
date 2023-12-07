@@ -7,7 +7,7 @@ export interface EditorMonacoState extends EditorTabFunctions {
     file: FSFile | undefined;
 }
 
-export function makeState(file?: FSFile, language?: string): EditorMonacoState {
+export function makeMonacoState(file?: FSFile, language?: string): EditorMonacoState {
     const model = Monaco.editor.createModel(
         file?.text ?? "",
         language
@@ -21,7 +21,7 @@ export function makeState(file?: FSFile, language?: string): EditorMonacoState {
         },
 
         close() {
-            model.dispose();
+            this.model.dispose();
         }
     };
 }
