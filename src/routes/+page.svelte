@@ -88,7 +88,6 @@
         const file = node as FSFile;
         const filePath = file.FullPath();
         const extension = file.name.split(".").pop();
-        console.log("penis cum", file);
 
         if (tabbedEditor.focusIfAvailable(filePath)) {
             return;
@@ -105,23 +104,31 @@
                 isText = false;
         }
 
-        let editor: ComponentType<EditorTabConstraint>;
+        let editor: ComponentType<EditorTabConstraint> | undefined = undefined;
         let state: any = undefined;
-        if (isText) {
-            switch (extension) {
-                case "rvedu":
+        switch (extension) {
+            case "rvedu":
+                if (isText) {
                     // TODO: a proper configuration editor
                     editor = EditorMonaco;
                     state = makeMonacoState(file, "json");
-                    break;
+                }
+                break;
 
-                default:
-                    editor = EditorMonaco;
-                    state = makeMonacoState(file, undefined);
+            case "bin":
+            case "dat":
+                isText = false;
+                break;
+        }
+
+        if (editor === undefined) {
+            if (isText) {
+                editor = EditorMonaco;
+                state = makeMonacoState(file, undefined);
+            } else {
+                editor = EditorHex;
+                state = makeHexState(file);
             }
-        } else {
-            editor = EditorHex;
-            state = makeHexState(file);
         }
 
         tabbedEditor.addNewTab(editor, filePath, state);
