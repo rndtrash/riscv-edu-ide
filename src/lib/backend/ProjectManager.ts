@@ -5,6 +5,7 @@ import {Machine} from "$lib/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "$lib/backend/Emulator/Machine";
 import {CPUInstructions} from "$lib/backend/Emulator/Masters/SimpleCPU";
 import type {IDisposable} from "$lib/EventEmitter";
+import {MakeADD, MakeADDI, MakeNOP} from "$lib/backend/Emulator/Masters/RISCV32";
 
 export class Project {
     protected _machine: Machine;
@@ -98,7 +99,7 @@ export function makeProject(folderName: string): void {
     currentProject.set(Project.FromJSON({
         systemConfiguration: {
             master: {
-                name: "simplecpu",
+                name: "rv32",
                 context: undefined
             },
             devices: [
@@ -113,11 +114,10 @@ export function makeProject(folderName: string): void {
                     context: {
                         address: 0,
                         contents: [
-                            CPUInstructions.Noop,
-                            CPUInstructions.LoadImmediate, 5,
-                            CPUInstructions.AddToRegister, 3,
-                            CPUInstructions.StoreAtAddress, 128,
-                            CPUInstructions.LoadFromAddress, 128
+                            MakeNOP(),
+                            MakeADDI(0, 1, 40),
+                            MakeADDI(0, 2, 2),
+                            MakeADD(1, 2, 3)
                         ],
                         readOnly: true
                     }

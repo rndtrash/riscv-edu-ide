@@ -2,3 +2,4 @@
 
 import "./ZeroToZero";
 import "./SimpleCPU";
+import "./RISCV32";
