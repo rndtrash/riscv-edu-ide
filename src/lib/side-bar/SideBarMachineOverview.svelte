@@ -38,14 +38,6 @@
     } else {
         drawableDevices = [$currentProject.machine._master, $currentProject.machine._masterBus, ...$currentProject.machine._masterBus.devices];
     }
-
-    function getDeviceKey(device: IMachineVisualizable & TickReceiver): any {
-        console.log("getkey")
-        if (device.svelteComponent === undefined)
-            return device.lastTick;
-        else
-            return device.getState();
-    }
 </script>
 
 <div>
