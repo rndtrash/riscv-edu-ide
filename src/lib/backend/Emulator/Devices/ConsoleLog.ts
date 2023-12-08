@@ -1,8 +1,11 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
+import type {ComponentType} from "svelte";
 
 const CONSOLELOG_NAME: string = "consolelog";
 
 export class ConsoleLog extends Device<number, number> {
+    public svelteComponent: ComponentType | undefined = undefined;
+
     protected DeviceRead(ioTick: number, address: number): number | undefined {
         console.log(`READ: ${address.toString(16)}`);
         return undefined;
@@ -18,6 +21,10 @@ export class ConsoleLog extends Device<number, number> {
 
     public serialize(): { name: string; context: any } {
         return {name: CONSOLELOG_NAME, context: undefined};
+    }
+
+    public getState(): any {
+        return undefined;
     }
 }
 
