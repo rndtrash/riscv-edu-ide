@@ -1,8 +1,12 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
+import type {ComponentType} from "svelte";
+import DeviceVisualROM32 from "$lib/device-visuals/DeviceVisualROM32.svelte";
 
 const ROM32_NAME: string = "rom32";
 
 export class ROM32 extends Device<number, number> {
+    public svelteComponent: ComponentType | undefined = DeviceVisualROM32;
+
     protected position: number;
     protected contents: Uint32Array;
     protected readOnly: boolean;
@@ -45,6 +49,10 @@ export class ROM32 extends Device<number, number> {
                 readOnly: this.readOnly
             }
         };
+    }
+
+    public getState(): Uint32Array {
+        return new Uint32Array(this.contents);
     }
 }
 
