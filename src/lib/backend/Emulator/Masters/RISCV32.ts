@@ -14,20 +14,23 @@ export enum Rv32OpCodes {
     AUIPC = 0b0010111,
     JAL = 0b1101111,
     JALR = 0b1100111,
-    BEQ = 0b1100011,
-    BNE = 0b1100011,
-    BLT = 0b1100011,
-    BGE = 0b1100011,
-    BLTU = 0b1100011,
-    BGEU = 0b1100011,
-    LB = 0b0000011,
-    LH = 0b0000011,
-    LW = 0b0000011,
-    LBU = 0b0000011,
-    LHU = 0b0000011,
-    SB = 0b0100011,
-    SH = 0b0100011,
-    SW = 0b0100011,
+    // BEQ = 0b1100011,
+    // BNE = 0b1100011,
+    // BLT = 0b1100011,
+    // BGE = 0b1100011,
+    // BLTU = 0b1100011,
+    // BGEU = 0b1100011,
+    BRANCH = 0b1100011,
+    // LB = 0b0000011,
+    // LH = 0b0000011,
+    // LW = 0b0000011,
+    // LBU = 0b0000011,
+    // LHU = 0b0000011,
+    LOAD = 0b0000011,
+    // SB = 0b0100011,
+    // SH = 0b0100011,
+    // SW = 0b0100011,
+    STORE = 0b0100011,
     // ADDI = 0b0010011,
     // SLTI = 0b0010011,
     // SLTIU = 0b0010011,
@@ -49,16 +52,18 @@ export enum Rv32OpCodes {
     // OR = 0b0110011,
     // AND = 0b0110011,
     OP = 0b0110011,
-    FENCE = 0b0001111,
-    FENCE_I = 0b0001111,
-    ECALL = 0b1110011,
-    EBREAK = 0b1110011,
-    CSRRW = 0b1110011,
-    CSRRS = 0b1110011,
-    CSRRC = 0b1110011,
-    CSRRWI = 0b1110011,
-    CSRRSI = 0b1110011,
-    CSRRCI = 0b1110011,
+    // FENCE = 0b0001111,
+    // FENCE_I = 0b0001111,
+    MISC_MEM = 0b0001111,
+    // ECALL = 0b1110011,
+    // EBREAK = 0b1110011,
+    // CSRRW = 0b1110011,
+    // CSRRS = 0b1110011,
+    // CSRRC = 0b1110011,
+    // CSRRWI = 0b1110011,
+    // CSRRSI = 0b1110011,
+    // CSRRCI = 0b1110011,
+    SYSTEM = 0b1110011,
 }
 
 enum Rv32Funct3OpImm {
@@ -190,10 +195,54 @@ export function MakeNOP(): number {
     return MakeADDI(0, 0, 0);
 }
 
+export function DecodeInstruction(instruction: number): IRv32RInstruction | IRv32IInstruction | undefined {
+    const opcode: Rv32OpCodes = instruction & 0b1111111;
+    VerifyOpcode(opcode);
+
+    switch (opcode) {
+        case Rv32OpCodes.OP_IMM:
+            return {
+                opcode: opcode,
+                rd: (instruction >> 7) & 0b1111,
+                funct3: (instruction >> (7 + 4)) & 0b111,
+                rs1: (instruction >> (7 + 4 + 3)) & 0b1111,
+                imm: (instruction >> (7 + 4 + 3 + 4)) & 0b11_1111_1111_1111,
+            } as IRv32IInstruction;
+
+        case Rv32OpCodes.LOAD:
+            return {
+                opcode: opcode,
+                rd: (instruction >> 7) & 0b1111,
+                funct3: (instruction >> (7 + 4)) & 0b111,
+                rs1: (instruction >> (7 + 4 + 3)) & 0b1111,
+                rs2: (instruction >> (7 + 4 + 3 + 4)) & 0b1111,
+                funct7: (instruction >> (7 + 4 + 3 + 4 + 4)) & 0b1111111,
+            } as IRv32RInstruction;
+    }
+
+    return undefined;
+}
+
+enum Rv32CPUState {
+    Read,
+    Execute
+}
+
+enum Rv32IOState {
+    Read,
+    Noop
+}
+
 export class Rv32CPU extends Master<number, number> {
     public svelteComponent: ComponentType | undefined = DeviceVisualRv32;
 
     protected _registers: number[] = new Array<number>(32);
+    protected _ip: number = 0;
+    protected _state: Rv32CPUState = Rv32CPUState.Read;
+
+    protected _ioState: Rv32IOState = Rv32IOState.Read;
+    protected _ioOp1: number = 0;
+    protected _ioOp2: number = 0;
 
     constructor() {
         super();
@@ -202,19 +251,80 @@ export class Rv32CPU extends Master<number, number> {
             this._registers[i] = 0;
     }
 
+    protected setRegister(index: number, value: number): void {
+        if (index != 0)
+            this._registers[index] = value;
+    }
+
     protected DeviceTick(tick: number): void {
         console.log("rv32: tick");
+        switch (this._state) {
+            case Rv32CPUState.Read:
+                const instruction = DecodeInstruction(this._ioOp2);
+                console.log(instruction);
+                if (instruction === undefined) {
+                    console.error(`rv32: invalid instruction ${instruction}`);
+                    return;
+                }
+
+                switch (instruction.opcode) {
+                    case Rv32OpCodes.OP_IMM:
+                        const op_imm = instruction as IRv32IInstruction;
+                        switch (op_imm.funct3) {
+                            case 0b000: // ADDI
+                                console.log(`rv32: ADDI r${op_imm.rd} = r${op_imm.rs1} + 0x${op_imm.imm.toString(16)}`);
+                                this.setRegister(op_imm.rd, this._registers[op_imm.rs1] + op_imm.imm);
+                                break;
+
+                            default:
+                                console.error(`rv32: unknown R funct3 ${op_imm.funct3}`);
+                        }
+
+                        this._ip += 4;
+
+                        this._ioOp1 = this._ip;
+                        this._ioState = Rv32IOState.Read;
+                        this._state = Rv32CPUState.Read;
+                        break;
+
+                    default:
+                        console.error(`unknown opcode ${instruction.opcode}`);
+                        break;
+                }
+                break;
+
+            default:
+                console.error(`rv32: unhandled state ${this._state}`)
+        }
     }
 
     protected MasterIO(ioTick: number): void {
-        this.bus.Read(ioTick, 0);
+        switch (this._ioState) {
+            case Rv32IOState.Read: {
+                const read = this.bus.Read(ioTick, this._ioOp1);
+                if (read === undefined) {
+                    console.error(`rv32: no response @ 0x${this._ioOp1.toString(16).padStart(8, "0")}`);
+                    this._ioOp2 = 0;
+                    break;
+                }
+                this._ioOp2 = read;
+
+                break;
+            }
+
+            case Rv32IOState.Noop:
+                break;
+
+            default:
+                console.error(`rv32: unhandled io state ${this._ioState}`);
+        }
     }
 
     public serialize(): { name: string; context: any } {
         return {name: RISCV32_NAME, context: undefined};
     }
 
-    getState(): IRv32State {
+    public getState(): IRv32State {
         return {
             registers: Array.from<number>(this._registers)
         }
