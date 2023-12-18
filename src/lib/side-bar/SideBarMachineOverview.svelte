@@ -7,37 +7,26 @@
     import type {IMachineVisualizable} from "$lib/backend/Emulator/MachineSerializable";
     import DeviceVisualGeneric from "$lib/device-visuals/DeviceVisualGeneric.svelte";
     import type {TickReceiver} from "$lib/backend/Emulator/Bus";
+    import DeviceVisual from "$lib/device-visuals/DeviceVisual.svelte";
 
     export let state: { text: string } | undefined;
     export let iconStatus: Writable<ButtonStatusIcon>;
 
     onMount(() => {
-        console.log("onmount");
         if (state === undefined) {
-            console.log("undefined");
             state = {text: "Hello!"};
         }
         console.log(state, get(iconStatus));
     });
 
-    // $: {
-    //     let l = state?.text?.length ?? 0;
-    //     if (l > 15)
-    //         iconStatus.set(ButtonStatusIcon.Info);
-    //     else if (l > 10)
-    //         iconStatus.set(ButtonStatusIcon.Warning);
-    //     else if (l > 5)
-    //         iconStatus.set(ButtonStatusIcon.Error);
-    //     else
-    //         iconStatus.set(ButtonStatusIcon.None);
-    // }
-
+    /*
     let drawableDevices = Array.of<IMachineVisualizable & TickReceiver>();
     $: if ($currentProject === undefined) {
         drawableDevices = [];
     } else {
         drawableDevices = [$currentProject.machine._master, $currentProject.machine._masterBus, ...$currentProject.machine._masterBus.devices];
     }
+    */
 </script>
 
 <div>
@@ -47,20 +36,36 @@
         Please, select a project
     {:else}
         {#if (state !== undefined)}
-            {#key $currentTick}
-                <div class="devices">
-                    {#each drawableDevices as device}
-                        {#if (device.svelteComponent !== undefined)}
-                            <svelte:component this={device.svelteComponent} state={device.getState()}/>
-                        {:else}
-                            <DeviceVisualGeneric device={device}/>
-                        {/if}
-                    {/each}
-                </div>
-            {/key}
+            <div class="machine">
+                {#key $currentTick}
+                    <DeviceVisual device={$currentProject.machine._master}/>
+                    <DeviceVisual device={$currentProject.machine.masterBus}/>
+                    <div class="devices">
+                        {#each $currentProject.machine._masterBus.devices as device}
+                            <DeviceVisual device={device}/>
+                        {/each}
+                    </div>
+                {/key}
+            </div>
         {/if}
     {/if}
 </div>
 
 <style lang="scss">
+  .machine {
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+
+    .devices {
+      display: flex;
+      flex-flow: row nowrap;
+      align-items: flex-start;
+
+      > * { // TODO: doesn't work?????
+        flex-grow: 1;
+        flex-basis: 0;
+      }
+    }
+  }
 </style>

@@ -7,16 +7,31 @@
 <div class="visual-cpu">
     RISC-V 32bit
     {#if (state !== undefined)}
-        {#each state.registers as register, i}
-            <div>Register {i} = 0x{register.toString(16).padStart(8, "0")}</div>
-        {/each}
+        <div class="registers">
+            {#each state.registers as register, i}
+                <div>Register {i} = 0x{register.toString(16).padStart(8, "0")}</div>
+            {/each}
+        </div>
     {/if}
 </div>
 
 <style lang="scss">
-    .visual-cpu {
-      border-color: black;
-      border-width: 1px;
-      border-style: solid;
+  .visual-cpu {
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+
+    .registers {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(8, 1fr);
+      grid-column-gap: 4px;
+      grid-row-gap: 4px;
+      padding: 4px;
+
+      div {
+        border: 1px solid black;
+      }
     }
+  }
 </style>

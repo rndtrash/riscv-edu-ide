@@ -1,8 +1,12 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
+import type {ComponentType} from "svelte";
+import DeviceVisualRAM32 from "$lib/device-visuals/DeviceVisualRAM32.svelte";
 
 const RAM32_NAME: string = "ram32";
 
 export class RAM32 extends Device<number, number> {
+    public svelteComponent: ComponentType | undefined = DeviceVisualRAM32;
+
     protected position: number;
     protected array: Uint32Array;
 
@@ -10,7 +14,7 @@ export class RAM32 extends Device<number, number> {
         super();
 
         this.position = position ?? 0;
-        this.array = new Uint32Array(size);
+        this.array = new Uint32Array((size + 3) >> 2); // Integer division by 2
     }
 
     protected DeviceRead(ioTick: number, address: number): number | undefined {
@@ -37,9 +41,13 @@ export class RAM32 extends Device<number, number> {
         return {
             name: RAM32_NAME, context: {
                 address: this.position,
-                size: this.array.length
+                size: this.array.length * 4 // Size of the number
             }
         };
+    }
+
+    public getState(): Uint32Array {
+        return new Uint32Array(this.array);
     }
 }
 
