@@ -21,6 +21,8 @@
     border-width: 1px;
     border-style: solid;
 
+    padding: 4px;
+
     .registers {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -31,6 +33,8 @@
 
       div {
         border: 1px solid black;
+
+        padding: 2px;
       }
     }
   }

@@ -13,5 +13,7 @@
     border-color: black;
     border-width: 1px;
     border-style: solid;
+
+    padding: 4px;
   }
 </style>

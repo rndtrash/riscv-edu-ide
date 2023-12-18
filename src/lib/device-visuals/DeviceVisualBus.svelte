@@ -6,7 +6,7 @@
 </script>
 
 <div class="visual-bus">
-    BUS!
+    Bus
     <!--
     <img src={omaygott}/>
     -->
@@ -18,9 +18,11 @@
 </div>
 
 <style lang="scss">
-    .visual-bus {
-      border-color: black;
-      border-width: 1px;
-      border-style: solid;
-    }
+  .visual-bus {
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+
+    padding: 4px;
+  }
 </style>

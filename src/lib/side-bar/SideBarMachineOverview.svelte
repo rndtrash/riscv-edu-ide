@@ -56,13 +56,15 @@
     display: flex;
     flex-flow: column nowrap;
     align-items: stretch;
+    gap: 4px;
 
     .devices {
       display: flex;
       flex-flow: row nowrap;
       align-items: flex-start;
+      gap: 4px;
 
-      > * { // TODO: doesn't work?????
+      > :global(div) {
         flex-grow: 1;
         flex-basis: 0;
       }

@@ -14,9 +14,9 @@
 </div>
 
 <style lang="scss">
-    .visual-cpu {
-      border-color: black;
-      border-width: 1px;
-      border-style: solid;
-    }
+  .visual-cpu {
+    border-color: black;
+    border-width: 1px;
+    border-style: solid;
+  }
 </style>
