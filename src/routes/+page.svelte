@@ -16,7 +16,6 @@
     import SideBarMachineOverview from "$lib/side-bar/SideBarMachineOverview.svelte";
     import SideBarProjectBrowser from "$lib/side-bar/SideBarProjectBrowser.svelte";
     import type {EditorTabConstraint} from "$lib/editors/EditorTab";
-    import EditorTest from "$lib/editors/EditorTest.svelte";
     import type {ComponentType} from "svelte";
     import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
     import {makeMonacoState} from "$lib/editors/EditorMonaco";
@@ -74,7 +73,7 @@
 
     let projectNameInput: HTMLInputElement;
     let projectNameSelected: string = "";
-    $: if (projectNameSelected != "") openProject(projectNameSelected);
+    $: if (projectNameSelected != "" && projectNameSelected != $currentProject?.folder.name) openProject(projectNameSelected);
 
     let tabbedEditor: TabbedEditor;
 
@@ -171,7 +170,9 @@
         <button on:click={() => $currentProject?.MachineTick()}>DEBUG: tick</button>
     {:else}
         <input type="text" placeholder="project name" bind:this={projectNameInput}>
-        <button on:click={() => makeProject(projectNameInput.value)}>DEBUG: make a new project</button>
+        <button on:click={() => {makeProject(projectNameInput.value); projectNameSelected = projectNameInput.value}}>
+            DEBUG: make a new project
+        </button>
     {/if}
 </header>
 
