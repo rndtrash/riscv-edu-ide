@@ -3,10 +3,11 @@
     import EditorTest from "$lib/editors/EditorTest.svelte";
     import EditorMonaco from "$lib/editors/EditorMonaco.svelte";
     import {currentProject} from "$lib/backend/ProjectManager";
-    import {get} from "svelte/store";
     import type {FSFile} from "$lib/backend/FileSystem";
     import type {ComponentType} from "svelte";
     import {SaveAll} from "$lib/backend/FileSystem";
+    import githubImage from "$lib/images/github.svg";
+    import svelteImage from "$lib/images/svelte-logo.svg";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
@@ -87,8 +88,8 @@
     {#if (tabs.length === 0)}
         <h1>Welcome to the RISC-V Edu IDE!</h1>
 
-        {#if (get(currentProject) === undefined)}
-            Select a project
+        {#if ($currentProject === undefined)}
+            Please, select a project, or create a new one.
         {/if}
 
         <button on:click={addNewExampleTab}>
