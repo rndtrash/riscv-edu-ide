@@ -21,6 +21,9 @@ export class RAM32 extends Device<number, number> {
         if (address < this.position || address >= this.position + this.array.length * 4)
             return undefined;
 
+        if (address % 4 != 0)
+            console.error(`ram unaligned access`);
+
         let value = this.array[(address - this.position) >> 2];
         console.log(`ram read @ ${address.toString(16)} = ${value}`);
         return value;
@@ -34,14 +37,17 @@ export class RAM32 extends Device<number, number> {
             return undefined;
 
         console.log(`ram write @ ${address.toString(16)} = ${data.toString(16)}`);
-        this.array[((address - this.position) >> 4) << 4] = data;
+        if (address % 4 == 0)
+            this.array[((address - this.position) >> 2) << 2] = data;
+        else
+            console.error(`ram unaligned access`);
     }
 
     public serialize(): { name: string; context: any } {
         return {
             name: RAM32_NAME, context: {
                 address: this.position,
-                size: this.array.length * 4 // Size of the number
+                size: this.array.length * 4 // Size of the data
             }
         };
     }

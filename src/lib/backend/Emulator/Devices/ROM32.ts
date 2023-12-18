@@ -25,6 +25,9 @@ export class ROM32 extends Device<number, number> {
         if (address < this.position || address >= this.position + this.contents.length * 4)
             return undefined;
 
+        if (address % 4 != 0)
+            console.error(`rom unaligned access`);
+
         let value = this.contents[(address - this.position) >> 2];
         console.log(`rom read @ ${address.toString(16)} = ${value}`);
         return value;
@@ -38,7 +41,10 @@ export class ROM32 extends Device<number, number> {
             return undefined;
 
         console.log(`rom write @ ${address.toString(16)} = ${data.toString(16)}`);
-        this.contents[((address - this.position) >> 4) << 4] = data;
+        if (address % 4 == 0)
+            this.contents[((address - this.position) >> 2) << 2] = data;
+        else
+            console.error(`rom unaligned access`);
     }
 
     public serialize(): { name: string; context: any } {
