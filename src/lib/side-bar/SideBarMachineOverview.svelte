@@ -1,12 +1,9 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
+    import type {ButtonStatusIcon} from "$lib/side-bar/SideBarTool";
     import type {Writable} from "svelte/store";
     import {get} from "svelte/store";
     import {currentProject, currentTick} from "$lib/backend/ProjectManager";
-    import type {IMachineVisualizable} from "$lib/backend/Emulator/MachineSerializable";
-    import DeviceVisualGeneric from "$lib/device-visuals/DeviceVisualGeneric.svelte";
-    import type {TickReceiver} from "$lib/backend/Emulator/Bus";
     import DeviceVisual from "$lib/device-visuals/DeviceVisual.svelte";
 
     export let state: { text: string } | undefined;
@@ -18,15 +15,6 @@
         }
         console.log(state, get(iconStatus));
     });
-
-    /*
-    let drawableDevices = Array.of<IMachineVisualizable & TickReceiver>();
-    $: if ($currentProject === undefined) {
-        drawableDevices = [];
-    } else {
-        drawableDevices = [$currentProject.machine._master, $currentProject.machine._masterBus, ...$currentProject.machine._masterBus.devices];
-    }
-    */
 </script>
 
 <div>
