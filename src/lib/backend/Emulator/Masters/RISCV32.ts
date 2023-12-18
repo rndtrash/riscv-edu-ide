@@ -275,7 +275,6 @@ export function DecodeInstruction(instruction: number): IRv32Instruction | undef
             } as IRv32RInstruction;
 
         case Rv32OpCodes.STORE:
-            console.log(`STORE DEBUG ${(instruction >> (7 + 5 + 3)) & 0b1_1111} ${(instruction >> (7 + 5 + 3 + 5)) & 0b1_1111}`);
             return {
                 opcode: opcode,
                 funct3: (instruction >> (7 + 5)) & 0b111,
