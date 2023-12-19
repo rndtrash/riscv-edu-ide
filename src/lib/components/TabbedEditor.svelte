@@ -6,8 +6,6 @@
     import type {FSFile} from "$lib/backend/FileSystem";
     import type {ComponentType} from "svelte";
     import {SaveAll} from "$lib/backend/FileSystem";
-    import githubImage from "$lib/images/github.svg";
-    import svelteImage from "$lib/images/svelte-logo.svg";
 
     let tabs: EditorTabPair[] = [];
     let currentTab = -1;
