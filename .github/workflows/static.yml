@@ -35,6 +35,7 @@ jobs:
         uses: actions/setup-node@v4.0.1
         with:
           cache: 'npm'
+      - run: npm install --include=dev
       - name: Build RISC-V Edu IDE
         run: npx vite build
       - name: Setup Pages
