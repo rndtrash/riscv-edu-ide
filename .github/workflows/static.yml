@@ -36,7 +36,7 @@ jobs:
         with:
           cache: 'npm'
       - name: Build RISC-V Edu IDE
-        run: npm run build
+        run: npx vite build
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Upload artifact
