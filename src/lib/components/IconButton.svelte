@@ -8,6 +8,9 @@
     export let alt: string;
     export let active: boolean = true;
     export let theme: string = "primary";
+    export let size: number = 32;
+
+    const padding: number = 4;
 
     const statusToClass: Map<ButtonStatusIcon, string> = new Map<ButtonStatusIcon, string>([
         [ButtonStatusIcon.None, ""],
@@ -20,10 +23,10 @@
     $: statusClass = statusToClass.get($status) ?? "";
 </script>
 
-<button class="{active ? `${theme}-container on-${theme}-container-text` : 'transparent'} button" on:click>
-    <div class="hover">
-        <Icon {icon} {alt}/>
-        {$status}
+<button class="{active ? `${theme}-container on-${theme}-container-text` : 'transparent'} button" on:click
+        style:width="{size}px" style:height="{size}px">
+    <div class="hover" style="padding: {padding}px">
+        <Icon {icon} {alt} size={size - padding * 2}/>
 
         {#if ($status !== ButtonStatusIcon.None)}
             <div class="status-container {active ? `${theme}-container` : 'surface-variant'}">
@@ -35,8 +38,6 @@
 
 <style lang="scss">
   .button {
-    width: 32px;
-    height: 32px;
     aspect-ratio: 1;
     padding: 0;
 
@@ -55,25 +56,10 @@
       position: relative;
 
       aspect-ratio: 1;
-      padding: 4px;
 
       background-color: #00000000;
 
       transition: background-color 0.1s ease-out;
-
-      &:hover {
-        background-color: #00000022;
-
-        > .status-container > .status {
-          box-shadow: #00000022 0 0 0 2px;
-        }
-      }
-
-      > picture {
-        width: 24px;
-        height: 24px;
-        aspect-ratio: 1;
-      }
 
       > .status-container {
         position: absolute;
@@ -111,6 +97,26 @@
           &.info {
             background-color: #4F81F5FF;
           }
+        }
+      }
+    }
+
+    &:hover {
+      .hover {
+        background-color: #00000022;
+
+        > .status-container > .status {
+          box-shadow: #00000022 0 0 0 2px;
+        }
+      }
+    }
+
+    &:active {
+      .hover {
+        background-color: #00000042;
+
+        > .status-container > .status {
+          box-shadow: #00000042 0 0 0 2px;
         }
       }
     }
