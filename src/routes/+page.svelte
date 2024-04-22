@@ -21,6 +21,7 @@
     import {makeMonacoState} from "$lib/editors/EditorMonaco";
     import EditorHex from "$lib/editors/EditorHex.svelte";
     import {makeHexState} from "$lib/editors/EditorHex";
+    import IconButton from "$lib/components/IconButton.svelte";
 
     let sideBarToolTopLeft: SideBarToolPair | undefined;
     let sideBarToolTopRight: SideBarToolPair | undefined;
@@ -158,7 +159,11 @@
 </svelte:head>
 
 <header class="primary-container on-primary-container-text">
-    header
+    <IconButton icon="menu"
+                status={writable(ButtonStatusIcon.None)}
+                alt="Expand the menu"
+                size={32}/>
+
     <select bind:value={projectNameSelected}>
         <option disabled selected value>-- select a project --</option>
         {#each $allProjects as project}
@@ -235,6 +240,17 @@
 </footer>
 
 <style lang="scss">
+  header {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+
+    height: 40px;
+  }
+
   main {
     flex-grow: 1;
 
