@@ -3,8 +3,6 @@ import {Exists, FSFile, FSFolder, Open, SaveAll} from "$lib/backend/FileSystem";
 import {rootFolder} from "$lib/backend/FileSystem";
 import {Machine} from "$lib/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "$lib/backend/Emulator/Machine";
-import {CPUInstructions} from "$lib/backend/Emulator/Masters/SimpleCPU";
-import type {IDisposable} from "$lib/EventEmitter";
 import {MakeADD, MakeADDI, MakeNOP, MakeSW} from "$lib/backend/Emulator/Masters/RISCV32";
 
 export class Project {
@@ -61,15 +59,14 @@ interface IProjectJson {
 
 export const PROJECT_EXTENSION: string = ".rvedu";
 
-// TODO: download example projects from the Internet
+// TODO: download example projects from the static folder
 export const ExampleProjects = ['/example-projects/hellorld.rvedu'];
 
 export const currentProject = writable<Project | undefined>(undefined);
 export const currentTick = writable<number>(0);
-let currentProjectChangeEvent: IDisposable | undefined = undefined;
 
 function listenToProjectChange() {
-    currentProjectChangeEvent = get(currentProject)?.folder.changeEvent.on(reloadProject);
+    get(currentProject)?.folder.addEventListener('fsnode-updated', reloadProject);
 }
 
 export function reloadProject(): void {
@@ -80,7 +77,6 @@ export function reloadProject(): void {
     }
 
     const projectFolder: string = project.folder.name;
-    currentProjectChangeEvent = undefined;
     currentProject.set(undefined);
     openProject(projectFolder);
 }
@@ -143,8 +139,11 @@ export function openProject(folderName: string): void {
 }
 
 export function closeProject(): void {
-    currentProjectChangeEvent = undefined;
-    get(currentProject)?.Save();
+    const project = get(currentProject);
+    if (project !== undefined) {
+        project.folder.removeEventListener('fsnode-updated', reloadProject);
+        project.Save();
+    }
     currentProject.set(undefined);
 }
 
@@ -162,7 +161,7 @@ export const allProjects = writable<string[]>([]);
 const rootFolderInterval = setInterval(() => {
     if (rootFolder !== undefined) {
         clearInterval(rootFolderInterval);
-        rootFolder.changeEvent.on(updateAvailableProjects);
+        rootFolder.addEventListener('fsnode-updated', updateAvailableProjects);
         updateAvailableProjects();
         return;
     }

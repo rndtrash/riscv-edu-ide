@@ -37,6 +37,8 @@
 </button>
 
 <style lang="scss">
+  @import '$lib/constants.scss';
+
   .button {
     aspect-ratio: 1;
     padding: 0;
@@ -47,6 +49,8 @@
     transition: background-color 0.1s ease-out;
 
     overflow: hidden;
+
+    user-select: none;
 
     &.transparent {
       background-color: #00000000;
@@ -87,15 +91,15 @@
           transition: box-shadow 0.1s ease-out;
 
           &.warning {
-            background-color: #F6B51EFF;
+            background-color: $color-warning;
           }
 
           &.error {
-            background-color: #D50F0FFF;
+            background-color: $color-error;
           }
 
           &.info {
-            background-color: #4F81F5FF;
+            background-color: $color-info;
           }
         }
       }
@@ -103,20 +107,20 @@
 
     &:hover {
       .hover {
-        background-color: #00000022;
+        background-color: $elevation-light;
 
         > .status-container > .status {
-          box-shadow: #00000022 0 0 0 2px;
+          box-shadow: $elevation-light 0 0 0 2px;
         }
       }
     }
 
     &:active {
       .hover {
-        background-color: #00000042;
+        background-color: $elevation-medium;
 
         > .status-container > .status {
-          box-shadow: #00000042 0 0 0 2px;
+          box-shadow: $elevation-medium 0 0 0 2px;
         }
       }
     }

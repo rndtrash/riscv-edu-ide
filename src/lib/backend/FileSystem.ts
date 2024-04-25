@@ -1,5 +1,4 @@
 import {browser} from '$app/environment';
-import {TypedEvent} from "$lib/EventEmitter";
 
 const PATH_SEPARATOR: string = "/";
 const PATH_PREFIX: string = "file:";
@@ -18,31 +17,53 @@ interface IFSFileJson extends IFSNodeJson {
     contentsUri: string;
 }
 
-export abstract class FSNode {
+export class FileUpdatedEvent extends Event {
+    public node: FSNode;
+
+    constructor(node: FSNode) {
+        super('fsnode-updated');
+        this.node = node;
+    }
+}
+
+export class FileDeletedEvent extends Event {
+    public node: FSNode;
+
+    constructor(node: FSNode) {
+        super('fsnode-deleted');
+        this.node = node;
+    }
+}
+
+export abstract class FSNode extends EventTarget {
     public name: string;
     protected changed: number;
     public parent: FSFolder | undefined; // TODO: hide it. I tried setting it to protected but the TS has a problem with that
-    protected _changeEventHandlers: TypedEvent<FSNode>;
+    private valid: boolean = true;
 
     protected constructor(name: string, changed?: number, parent?: FSFolder) {
-        this._changeEventHandlers = new TypedEvent<FSNode>();
+        super();
 
         this.name = name;
         this.changed = changed ?? Date.now();
         this.parent = parent;
     }
 
-    public get changeEvent() {
-        return this._changeEventHandlers;
+    private AssertValid(): void {
+        if (!this.valid)
+            throw 'Invalid file';
     }
 
-    public Touch(): void {
+    public Touch(notify: boolean = true): void {
+        this.AssertValid();
+
         this.changed = Date.now();
 
         if (this.parent !== undefined)
-            this.parent.Touch();
+            this.parent.Touch(notify);
 
-        this.changeEvent.emit(this);
+        if (notify)
+            this.dispatchEvent(new FileUpdatedEvent(this));
     }
 
     private getParentChain(): FSFolder[] {
@@ -61,10 +82,24 @@ export abstract class FSNode {
         return PATH_PREFIX + [...this.getParentChain(), this].map<string>((f) => f.name).join(PATH_SEPARATOR);
     }
 
-    public Save(): void {
+    public async Save(): Promise<void> {
+        this.AssertValid();
+
         let context: string[] = this.getParentChain().map<string>((f) => f.name);
 
-        this.SaveWithContext(context);
+        return this.SaveWithContext(context);
+    }
+
+    public Delete(): void {
+        // TODO: deleting nodes
+        if (this.parent !== undefined) {
+            const i = this.parent.children.indexOf(this);
+            if (i != -1)
+                delete this.parent.children[i];
+        }
+
+        this.valid = false;
+        this.dispatchEvent(new FileDeletedEvent(this));
     }
 
     public abstract SaveWithContext(context: string[]): Promise<void>;
@@ -244,8 +279,8 @@ export let rootFolder: FSFolder;
     }
 })();
 
-export function SaveAll() {
-    rootFolder.Save();
+export async function SaveAll(): Promise<void> {
+    return rootFolder.Save();
 }
 
 function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, createFolders: boolean): FSFile | undefined {
