@@ -1,5 +1,5 @@
 import type {FSFile} from "$lib/backend/FileSystem";
-import * as Monaco from "monaco-editor";
+import Monaco from "./monaco";
 import type {EditorTabFunctions} from "$lib/editors/EditorTab";
 
 export interface EditorMonacoState extends EditorTabFunctions {
