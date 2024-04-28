@@ -10,7 +10,7 @@ export function makeHexState(file: FSFile | undefined): EditorHexState {
         data: file?.contents ?? new Uint8Array(),
         save() {
             if (file !== undefined)
-                file.contents = this.data;
+                file.write(this.data);
         },
         close() {
         }

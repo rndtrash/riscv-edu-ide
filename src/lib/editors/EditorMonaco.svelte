@@ -22,8 +22,7 @@
         state ??= makeMonacoState();
         state.save = () => {
             if (hasChanges && state !== undefined && state.file !== undefined) {
-                state.file.text = state.model.getValue();
-                state.file.Save();
+                state.file.write(state.model.getValue());
                 hasChanges = false;
             }
         };

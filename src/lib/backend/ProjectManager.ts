@@ -7,11 +7,11 @@ import {MakeADD, MakeADDI, MakeNOP, MakeSW} from "$lib/backend/Emulator/Masters/
 
 export class Project {
     protected _machine: Machine;
-    protected file: FSFile;
+    protected _file: FSFile;
 
     public constructor(systemConfiguration: ISystemConfiguration, file: FSFile) {
         this._machine = Machine.FromSystemConfiguration(systemConfiguration);
-        this.file = file;
+        this._file = file;
     }
 
     public static FromJSON(json: IProjectJson, file: FSFile): Project {
@@ -28,8 +28,12 @@ export class Project {
         return Project.FromJSON(projectJson, file);
     }
 
+    public get projectFile(): FSFile {
+        return this._file;
+    }
+
     public get folder(): FSFolder {
-        return this.file.parent!;
+        return this._file.parent!;
     }
 
     public get machine(): Machine {
@@ -48,8 +52,8 @@ export class Project {
     }
 
     public Save() {
-        this.file.text = JSON.stringify(this.ToJSON());
-        this.file.parent?.Save();
+        this._file.write(JSON.stringify(this.ToJSON()), false);
+        this._file.parent?.Save();
     }
 }
 
@@ -66,7 +70,7 @@ export const currentProject = writable<Project | undefined>(undefined);
 export const currentTick = writable<number>(0);
 
 function listenToProjectChange() {
-    get(currentProject)?.folder.addEventListener('fsnode-updated', reloadProject);
+    get(currentProject)?.projectFile.addEventListener('fsnode-updated', reloadProject);
 }
 
 export function reloadProject(): void {

@@ -178,11 +178,6 @@ export class FSFile extends FSNode {
         return this._contents;
     }
 
-    public set contents(contents: Uint8Array) {
-        this._contents = contents;
-        this.Touch();
-    }
-
     /*
      * Throws an exception if the file is not a valid UTF-8 text
      */
@@ -190,8 +185,11 @@ export class FSFile extends FSNode {
         return new TextDecoder(undefined, {fatal: true}).decode(this._contents);
     }
 
-    public set text(text: string) {
-        this.contents = new TextEncoder().encode(text);
+    public write(contents: Uint8Array | string, notify: boolean = true): void {
+        if (typeof contents === "string")
+            contents = new TextEncoder().encode(contents);
+        this._contents = contents;
+        this.Touch(notify);
     }
 
     protected static async bytesToBase64DataUrl(bytes: Uint8Array, type = "application/octet-stream"): Promise<string> {
