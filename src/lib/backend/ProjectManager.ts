@@ -123,6 +123,7 @@ export function makeProject(folderName: string): void {
         }
     }, projectFile));
     listenToProjectChange();
+    updateAvailableProjects();
 }
 
 export function openProject(folderName: string): void {
@@ -157,16 +158,10 @@ function getJsonFromString(jsonString: string): IProjectJson {
 
 export const allProjects = writable<string[]>([]);
 
-// TODO: hack!!!
-const rootFolderInterval = setInterval(() => {
-    if (rootFolder !== undefined) {
-        clearInterval(rootFolderInterval);
-        rootFolder.addEventListener('fsnode-updated', updateAvailableProjects);
-        updateAvailableProjects();
-        return;
-    }
-    console.error("root folder is not ready yet");
-}, 200);
+export function initializeProjectManager() {
+    rootFolder.addEventListener('fsnode-updated', updateAvailableProjects);
+    updateAvailableProjects();
+}
 
 function updateAvailableProjects(): void {
     allProjects.set(availableProjects());

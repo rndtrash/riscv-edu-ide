@@ -17,7 +17,7 @@ interface IFSFileJson extends IFSNodeJson {
     contentsUri: string;
 }
 
-export class FileUpdatedEvent extends Event {
+export class FsNodeUpdated extends Event {
     public node: FSNode;
 
     constructor(node: FSNode) {
@@ -26,7 +26,7 @@ export class FileUpdatedEvent extends Event {
     }
 }
 
-export class FileDeletedEvent extends Event {
+export class FsNodeDeleted extends Event {
     public node: FSNode;
 
     constructor(node: FSNode) {
@@ -59,11 +59,12 @@ export abstract class FSNode extends EventTarget {
 
         this.changed = Date.now();
 
-        if (this.parent !== undefined)
-            this.parent.Touch(notify);
+        // TODO: should the touch events bubble up?
+        // if (this.parent !== undefined)
+        //     this.parent.Touch(notify);
 
         if (notify)
-            this.dispatchEvent(new FileUpdatedEvent(this));
+            this.dispatchEvent(new FsNodeUpdated(this));
     }
 
     private getParentChain(): FSFolder[] {
@@ -91,7 +92,6 @@ export abstract class FSNode extends EventTarget {
     }
 
     public Delete(): void {
-        // TODO: deleting nodes
         if (this.parent !== undefined) {
             const i = this.parent.children.indexOf(this);
             if (i != -1)
@@ -99,7 +99,8 @@ export abstract class FSNode extends EventTarget {
         }
 
         this.valid = false;
-        this.dispatchEvent(new FileDeletedEvent(this));
+        this.dispatchEvent(new FsNodeDeleted(this));
+        this.parent?.dispatchEvent(new FsNodeUpdated(this.parent));
     }
 
     public abstract SaveWithContext(context: string[]): Promise<void>;
@@ -263,7 +264,8 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
 
 // Get the root folder
 export let rootFolder: FSFolder;
-(async () => {
+
+export async function initializeFS(): Promise<void> {
     if (browser) {
         let rf: FSNode = new FSFolder("");
         try {
@@ -277,7 +279,7 @@ export let rootFolder: FSFolder;
 
         rootFolder = rf as FSFolder;
     }
-})();
+}
 
 export async function SaveAll(): Promise<void> {
     return rootFolder.Save();
