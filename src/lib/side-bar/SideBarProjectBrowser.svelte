@@ -7,11 +7,11 @@
     import ProjectBrowserNodeListing from "$lib/components/ProjectBrowserFolderListing.svelte";
     import type {FSNode} from "$lib/backend/FileSystem";
 
-    export let state: { selected: FSNode[] } | undefined;
+    export let state: { selected: FSNode[] } | null;
     export let iconStatus: Writable<ButtonStatusIcon>;
 
     onMount(() => {
-        if (state === undefined) {
+        if (state == null) {
             // TODO: save the open folders
             state = {selected: []};
         }
@@ -19,8 +19,8 @@
 </script>
 
 <div>
-    {#if (state !== undefined)}
-        {#if $currentProject === undefined}
+    {#if (state != null)}
+        {#if $currentProject == null}
             Please, open a project
         {:else}
             <ProjectBrowserNodeListing folder={$currentProject.folder} bind:selected={state.selected}/>

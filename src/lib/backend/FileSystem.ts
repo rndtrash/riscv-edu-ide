@@ -151,7 +151,7 @@ export class FSFolder extends FSNode {
             children: this._children.map<string>((c) => c.name)
         };
         let thisJsonString = JSON.stringify(thisJson);
-        if (existingEntryJsonString !== null) {
+        if (existingEntryJsonString != null) {
             let existingEntryJson: IFSFolderJson = JSON.parse(existingEntryJsonString);
             if (existingEntryJson.changed !== thisJson.changed)
                 localStorage.setItem(absolutePath, thisJsonString);
@@ -208,7 +208,7 @@ export class FSFile extends FSNode {
 
         // Updating the JSON for this node
         let existingEntryJsonString = localStorage.getItem(absolutePath);
-        if (existingEntryJsonString !== null) {
+        if (existingEntryJsonString != null) {
             let existingEntryJson: IFSNodeJson = JSON.parse(existingEntryJsonString);
             if (existingEntryJson.changed === this.changed)
                 return;
@@ -283,10 +283,10 @@ export async function SaveAll(): Promise<void> {
     return rootFolder.Save();
 }
 
-function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, createFolders: boolean): FSFile | undefined {
+function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, createFolders: boolean): FSFile | null {
     let nextPathElement = path.shift();
     if (nextPathElement === undefined)
-        return undefined;
+        return null;
 
     // The last element of the path is the file that we need
     if (path.length == 0) {
@@ -296,19 +296,19 @@ function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, 
         }
 
         if (!createFile)
-            return undefined;
+            return null;
 
         return currentFolder.NewFile(nextPathElement);
     }
 
-    let nextFolder: FSFolder | undefined = undefined;
+    let nextFolder: FSFolder | null = null;
     for (let child of currentFolder.children) {
         if (child instanceof FSFolder && child.name == nextPathElement)
             nextFolder = child;
     }
-    if (nextFolder === undefined) {
+    if (nextFolder == null) {
         if (!createFolders || !createFile)
-            return undefined;
+            return null;
 
         nextFolder = currentFolder.NewFolder(nextPathElement);
     }
@@ -316,10 +316,10 @@ function OpenFile(currentFolder: FSFolder, path: string[], createFile: boolean, 
     return OpenFile(nextFolder, path, createFile, createFolders);
 }
 
-export function Open(path: string, createFile: boolean = false, createFolders: boolean = true): FSFile | undefined {
+export function Open(path: string, createFile: boolean = false, createFolders: boolean = true): FSFile | null {
     let pathSplit = path.split(PATH_SEPARATOR);
     if (pathSplit.length == 0 || pathSplit[0] != "" || pathSplit[pathSplit.length - 1] == "")
-        return undefined;
+        return null;
 
     pathSplit.shift();
     return OpenFile(rootFolder, pathSplit, createFile, createFolders);
@@ -340,12 +340,12 @@ function ExistsNode(currentFolder: FSFolder, path: string[]): boolean {
         return false;
     }
 
-    let nextFolder: FSFolder | undefined = undefined;
+    let nextFolder: FSFolder | null = null;
     for (let child of currentFolder.children) {
         if (child instanceof FSFolder && child.name == nextPathElement)
             nextFolder = child;
     }
-    if (nextFolder === undefined) {
+    if (nextFolder == null) {
         return false;
     }
 

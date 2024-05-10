@@ -86,7 +86,7 @@
     {#if (tabs.length === 0)}
         <h1>Welcome to the RISC-V Edu IDE!</h1>
 
-        {#if ($currentProject === undefined)}
+        {#if ($currentProject == null)}
             Please, select a project, or create a new one.
         {/if}
 

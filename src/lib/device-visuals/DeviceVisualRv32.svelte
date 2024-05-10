@@ -1,12 +1,12 @@
 <script lang="ts">
     import type {IRv32State} from "$lib/backend/Emulator/Masters/RISCV32";
 
-    export let state: IRv32State | undefined;
+    export let state: IRv32State | null;
 </script>
 
 <div class="visual-cpu">
     RISC-V 32bit
-    {#if (state !== undefined)}
+    {#if (state != null)}
         <div class="registers">
             {#each state.registers as register, i}
                 <div>Register {i} = 0x{register.toString(16).padStart(8, "0")}</div>

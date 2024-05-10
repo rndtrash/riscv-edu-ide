@@ -4,8 +4,8 @@
 
     export let buttons: SideBarToolPair[] = [];
     let currentButton = -1;
-    export let sideBarTool: SideBarToolPair | undefined;
-    $: sideBarTool = currentButton >= 0 ? buttons[currentButton] : undefined;
+    export let sideBarTool: SideBarToolPair | null;
+    $: sideBarTool = currentButton >= 0 ? buttons[currentButton] : null;
 </script>
 
 {#each buttons as button, index}

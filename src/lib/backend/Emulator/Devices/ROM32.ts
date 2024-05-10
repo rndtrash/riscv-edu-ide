@@ -1,11 +1,12 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
 import type {ComponentType} from "svelte";
 import DeviceVisualROM32 from "$lib/device-visuals/DeviceVisualROM32.svelte";
+import {v4} from "uuid";
 
 const ROM32_NAME: string = "rom32";
 
 export class ROM32 extends Device<number, number> {
-    public svelteComponent: ComponentType | undefined = DeviceVisualROM32;
+    public svelteComponent: ComponentType | null = DeviceVisualROM32;
 
     protected position: number;
     protected contents: Uint32Array;
@@ -21,9 +22,9 @@ export class ROM32 extends Device<number, number> {
         this.readOnly = readOnly ?? true;
     }
 
-    protected DeviceRead(ioTick: number, address: number): number | undefined {
+    protected DeviceRead(ioTick: number, address: number): number | null {
         if (address < this.position || address >= this.position + this.contents.length * 4)
-            return undefined;
+            return null;
 
         if (address % 4 != 0)
             console.error(`rom unaligned access`);
@@ -47,9 +48,11 @@ export class ROM32 extends Device<number, number> {
             console.error(`rom unaligned access`);
     }
 
-    public serialize(): { name: string; context: any } {
+    public serialize(): { name: string; uuid: string; context: any } {
         return {
-            name: ROM32_NAME, context: {
+            name: ROM32_NAME,
+            uuid: this.uuid,
+            context: {
                 address: this.position,
                 contents: Array.from<number>(this.contents),
                 readOnly: this.readOnly
@@ -66,4 +69,8 @@ MasterBusDeviceRegistry[ROM32_NAME] = (context: {
     address: number,
     contents: Iterable<number>,
     readOnly: boolean
-}) => new ROM32(context.address, new Uint32Array(context.contents), context.readOnly);
+}, uuid: string = v4()) => {
+    const device = new ROM32(context.address, new Uint32Array(context.contents), context.readOnly);
+    device.uuid = uuid;
+    return device;
+}

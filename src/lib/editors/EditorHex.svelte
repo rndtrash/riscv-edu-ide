@@ -2,13 +2,13 @@
     import {onMount} from "svelte";
     import type {EditorTabFunctions} from "$lib/editors/EditorTab";
 
-    export let state: { text: string } & EditorTabFunctions | undefined;
+    export let state: { text: string } & EditorTabFunctions | null;
     export let hasChanges: boolean;
     export let filePath: string;
     $: hasChanges = state?.text !== "Hello";
 
     onMount(() => {
-        if (state === undefined) {
+        if (state == null) {
             state = {
                 text: "Hello",
 
@@ -25,7 +25,7 @@
     });
 </script>
 
-{#if (state !== undefined)}
+{#if (state != null)}
     <div>
         Editing {filePath}:
         <input type="text" bind:value={state.text}/>

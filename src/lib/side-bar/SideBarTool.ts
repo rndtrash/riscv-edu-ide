@@ -15,5 +15,5 @@ export interface SideBarToolPair {
     name: string,
     icon: string,
     iconStatus: Writable<ButtonStatusIcon>,
-    state: any | undefined
+    state: any | null
 }

@@ -1,6 +1,7 @@
 import {Master, MasterBusMasterRegistry} from "$lib/backend/Emulator/Bus";
 import type { ComponentType } from "svelte";
 import DeviceVisualSimpleCPU from "$lib/device-visuals/DeviceVisualSimpleCPU.svelte";
+import {v4} from "uuid";
 
 enum CPUState {
     ReadInstruction,
@@ -27,7 +28,7 @@ export interface ISimpleCPUState {
 }
 
 export class SimpleCPU extends Master<number, number> {
-    public svelteComponent: ComponentType | undefined = DeviceVisualSimpleCPU;
+    public svelteComponent: ComponentType | null = DeviceVisualSimpleCPU;
 
     private ip: number = 0;
     private dataRq: number = 0;
@@ -119,7 +120,7 @@ export class SimpleCPU extends Master<number, number> {
         switch (this.state) {
             case CPUState.ReadInstruction: {
                 let i = this.bus.Read(ioTick, this.ip);
-                if (i === undefined)
+                if (i == null)
                     throw `no response @ ${this.ip}`;
                 this.dword = i;
                 this.state = CPUState.ProcessInstruction;
@@ -130,7 +131,7 @@ export class SimpleCPU extends Master<number, number> {
             case CPUState.ReadWordFromRAM:
             case CPUState.ReadWordFromRAMStage2: {
                 let i = this.bus.Read(ioTick, this.dataRq);
-                if (i === undefined)
+                if (i == null)
                     throw `no response @ ${this.dataRq}`;
                 this.dword = i;
 
@@ -153,9 +154,13 @@ export class SimpleCPU extends Master<number, number> {
         };
     }
 
-    public serialize(): { name: string; context: any } {
-        return {name: SIMPLECPU_NAME, context: undefined};
+    public serialize(): { name: string; uuid: string; context: any } {
+        return {name: SIMPLECPU_NAME, uuid: this.uuid, context: undefined};
     }
 }
 
-MasterBusMasterRegistry[SIMPLECPU_NAME] = () => new SimpleCPU();
+MasterBusMasterRegistry[SIMPLECPU_NAME] = (context, uuid: string = v4()) => {
+    const cpu = new SimpleCPU();
+    cpu.uuid = uuid;
+    return cpu;
+}

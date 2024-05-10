@@ -1,13 +1,13 @@
 <script lang="ts">
     import type {IBusState} from "$lib/backend/Emulator/Bus";
 
-    export let state: IBusState<number, number> | undefined;
+    export let state: IBusState<number, number> | null;
 </script>
 
 <div class="visual-bus">
     Bus
 
-    {#if (state !== undefined && state.isRead !== undefined)}
+    {#if (state != null && state.isRead !== undefined)}
         <div>Address: {state.address}</div>
         <div>Value: {state.value}</div>
         <div>Direction: {state.isRead ? "Read" : "Write"}</div>

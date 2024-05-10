@@ -4,6 +4,7 @@ import {rootFolder} from "$lib/backend/FileSystem";
 import {Machine} from "$lib/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "$lib/backend/Emulator/Machine";
 import {MakeADD, MakeADDI, MakeNOP, MakeSW} from "$lib/backend/Emulator/Masters/RISCV32";
+import {LoggerManager} from "$lib/backend/Logger";
 
 export class Project {
     protected _machine: Machine;
@@ -23,9 +24,11 @@ export class Project {
         return project;
     }
 
-    public static FromFile(file: FSFile): Project {
+    public static FromFile(file: FSFile): Project | null {
         const projectJson = getJsonFromString(file.text);
-        return Project.FromJSON(projectJson, file);
+        if (projectJson != null)
+            return Project.FromJSON(projectJson, file);
+        return null;
     }
 
     public get projectFile(): FSFile {
@@ -66,7 +69,7 @@ export const PROJECT_EXTENSION: string = ".rvedu";
 // TODO: download example projects from the static folder
 export const ExampleProjects = ['/example-projects/hellorld.rvedu'];
 
-export const currentProject = writable<Project | undefined>(undefined);
+export const currentProject = writable<Project | null>(null);
 export const currentTick = writable<number>(0);
 
 function listenToProjectChange() {
@@ -75,13 +78,13 @@ function listenToProjectChange() {
 
 export function reloadProject(): void {
     const project = get(currentProject);
-    if (project === undefined) {
+    if (project === null) {
         console.error("Nothing to reload.");
         return;
     }
 
     const projectFolder: string = project.folder.name;
-    currentProject.set(undefined);
+    currentProject.set(null);
     openProject(projectFolder);
 }
 
@@ -100,12 +103,12 @@ export function makeProject(folderName: string): void {
         systemConfiguration: {
             master: {
                 name: "rv32",
-                context: undefined
+                context: null
             },
             devices: [
                 {
                     name: "consolelog",
-                    context: undefined
+                    context: null
                 }, {
                     name: "ram32",
                     context: {address: 128, size: 128}
@@ -136,7 +139,7 @@ export function openProject(folderName: string): void {
     closeProject();
 
     let projectFile = Open(`/${folderName}/${PROJECT_EXTENSION}`, false, false);
-    if (projectFile === undefined)
+    if (projectFile === null)
         throw "Invalid project";
 
     currentProject.set(Project.FromFile(projectFile));
@@ -145,17 +148,18 @@ export function openProject(folderName: string): void {
 
 export function closeProject(): void {
     const project = get(currentProject);
-    if (project !== undefined) {
+    if (project != null) {
         project.folder.removeEventListener('fsnode-updated', reloadProject);
         project.Save();
     }
-    currentProject.set(undefined);
+    currentProject.set(null);
+
+    LoggerManager.The.reset();
 }
 
-function getJsonFromString(jsonString: string): IProjectJson {
+function getJsonFromString(jsonString: string): IProjectJson | null {
+    // TODO: exceptions
     const jsonProject: IProjectJson = JSON.parse(jsonString);
-    /*if (jsonProject.name === undefined)
-        throw "Invalid project JSON";*/
 
     return jsonProject;
 }
@@ -182,7 +186,7 @@ function availableProjects(): string[] {
             if (fChild instanceof FSFile && fChild.name == PROJECT_EXTENSION) {
                 try {
                     let projectJson = getJsonFromString((fChild as FSFile).text);
-                    if (projectJson !== undefined)
+                    if (projectJson != null)
                         projects = [...projects, child.name];
                 } catch (e) {
                     console.error(`Error while looking for available projects: ${e}`);

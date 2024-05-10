@@ -1,6 +1,7 @@
 import {Master, MasterBusMasterRegistry} from "$lib/backend/Emulator/Bus";
 import type {ComponentType} from "svelte";
 import DeviceVisualRv32 from "$lib/device-visuals/DeviceVisualRv32.svelte";
+import {v4} from "uuid";
 
 const RISCV32_NAME: string = "rv32";
 
@@ -309,7 +310,7 @@ enum Rv32IOState {
 }
 
 export class Rv32CPU extends Master<number, number> {
-    public svelteComponent: ComponentType | undefined = DeviceVisualRv32;
+    public svelteComponent: ComponentType | null = DeviceVisualRv32;
 
     protected _registers: number[] = new Array<number>(32);
     protected _ip: number = 0;
@@ -452,7 +453,7 @@ export class Rv32CPU extends Master<number, number> {
         switch (this._ioState) {
             case Rv32IOState.Read: {
                 const read = this.bus.Read(ioTick, this._ioOp1);
-                if (read === undefined) {
+                if (read == null) {
                     console.error(`rv32: no response @ 0x${this._ioOp1.toString(16).padStart(8, "0")}`);
                     this._ioOp2 = 0;
                     break;
@@ -482,8 +483,8 @@ export class Rv32CPU extends Master<number, number> {
         }
     }
 
-    public serialize(): { name: string; context: any } {
-        return {name: RISCV32_NAME, context: undefined};
+    public serialize(): { name: string; uuid: string; context: any } {
+        return {name: RISCV32_NAME, uuid: this.uuid, context: undefined};
     }
 
     public getState(): IRv32State {
@@ -493,4 +494,8 @@ export class Rv32CPU extends Master<number, number> {
     }
 }
 
-MasterBusMasterRegistry[RISCV32_NAME] = () => new Rv32CPU();
+MasterBusMasterRegistry[RISCV32_NAME] = (context: any, uuid: string = v4()) => {
+    const rv = new Rv32CPU();
+    rv.uuid = uuid;
+    return rv;
+}

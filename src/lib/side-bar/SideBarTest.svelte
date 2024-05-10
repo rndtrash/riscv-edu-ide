@@ -4,12 +4,12 @@
     import type {Writable} from "svelte/store";
     import {get} from "svelte/store";
 
-    export let state: { text: string } | undefined;
+    export let state: { text: string } | null;
     export let iconStatus: Writable<ButtonStatusIcon>;
 
     onMount(() => {
         console.log("onmount");
-        if (state === undefined) {
+        if (state == null) {
             console.log("undefined");
             state = {text: "Hello!"};
         }
@@ -29,7 +29,7 @@
     }
 </script>
 
-{#if (state !== undefined)}
+{#if (state != null)}
     <div>
         <input type="text" bind:value={state.text}/>
         Side Bar Tool

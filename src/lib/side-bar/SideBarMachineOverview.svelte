@@ -6,11 +6,11 @@
     import {currentProject, currentTick} from "$lib/backend/ProjectManager";
     import DeviceVisual from "$lib/device-visuals/DeviceVisual.svelte";
 
-    export let state: { text: string } | undefined;
+    export let state: { text: string } | null;
     export let iconStatus: Writable<ButtonStatusIcon>;
 
     onMount(() => {
-        if (state === undefined) {
+        if (state == null) {
             state = {text: "Hello!"};
         }
         console.log(state, get(iconStatus));
@@ -20,10 +20,10 @@
 <div>
     <h1>Machine overview:</h1>
 
-    {#if ($currentProject === undefined)}
+    {#if ($currentProject == null)}
         Please, select a project
     {:else}
-        {#if (state !== undefined)}
+        {#if (state != null)}
             <div class="machine">
                 {#key $currentTick}
                     <DeviceVisual device={$currentProject.machine._master}/>

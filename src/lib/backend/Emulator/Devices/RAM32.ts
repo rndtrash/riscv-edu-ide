@@ -1,11 +1,12 @@
 import {Device, MasterBusDeviceRegistry} from "$lib/backend/Emulator/Bus";
 import type {ComponentType} from "svelte";
 import DeviceVisualRAM32 from "$lib/device-visuals/DeviceVisualRAM32.svelte";
+import {v4} from "uuid";
 
 const RAM32_NAME: string = "ram32";
 
 export class RAM32 extends Device<number, number> {
-    public svelteComponent: ComponentType | undefined = DeviceVisualRAM32;
+    public svelteComponent: ComponentType | null = DeviceVisualRAM32;
 
     protected position: number;
     protected array: Uint32Array;
@@ -17,9 +18,9 @@ export class RAM32 extends Device<number, number> {
         this.array = new Uint32Array((size + 3) >> 2); // Integer division by 2
     }
 
-    protected DeviceRead(ioTick: number, address: number): number | undefined {
+    protected DeviceRead(ioTick: number, address: number): number | null {
         if (address < this.position || address >= this.position + this.array.length * 4)
-            return undefined;
+            return null;
 
         if (address % 4 != 0)
             console.error(`ram unaligned access`);
@@ -43,9 +44,11 @@ export class RAM32 extends Device<number, number> {
             console.error(`ram unaligned access`);
     }
 
-    public serialize(): { name: string; context: any } {
+    public serialize(): { name: string; uuid: string; context: any } {
         return {
-            name: RAM32_NAME, context: {
+            name: RAM32_NAME,
+            uuid: this.uuid,
+            context: {
                 address: this.position,
                 size: this.array.length * 4 // Size of the data
             }
@@ -60,4 +63,8 @@ export class RAM32 extends Device<number, number> {
 MasterBusDeviceRegistry[RAM32_NAME] = (context: {
     address: number,
     size: number
-}) => new RAM32(context.address, context.size);
+}, uuid: string = v4()) => {
+    const device = new RAM32(context.address, context.size);
+    device.uuid = uuid;
+    return device;
+}

@@ -1,12 +1,12 @@
 <script lang="ts">
     import type {ISimpleCPUState} from "$lib/backend/Emulator/Masters/SimpleCPU";
 
-    export let state: ISimpleCPUState | undefined;
+    export let state: ISimpleCPUState | null;
 </script>
 
 <div class="visual-cpu">
     SimpleCPU
-    {#if (state !== undefined)}
+    {#if (state != null)}
         <div>State: {state.state}</div>
         <div>Instruction Pointer: {state.ip}</div>
         <div>Register A: {state.register}</div>

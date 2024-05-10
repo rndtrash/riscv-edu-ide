@@ -4,7 +4,7 @@
     import {makeMonacoState} from "$lib/editors/EditorMonaco";
     import type {EditorMonacoState} from "$lib/editors/EditorMonaco";
 
-    export let state: EditorMonacoState | undefined;
+    export let state: EditorMonacoState | null;
     export let hasChanges: boolean;
     export let filePath: string;
 
@@ -21,7 +21,7 @@
         editor = monaco.editor.create(editorContainer, {automaticLayout: true});
         state ??= makeMonacoState();
         state.save = () => {
-            if (hasChanges && state !== undefined && state.file !== undefined) {
+            if (hasChanges && state != null && state.file !== undefined) {
                 state.file.write(state.model.getValue());
                 hasChanges = false;
             }

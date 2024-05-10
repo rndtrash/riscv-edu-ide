@@ -1,11 +1,13 @@
 import type {IMachineSerializable, IMachineVisualizable} from "$lib/backend/Emulator/MachineSerializable";
 import DeviceVisualBus from "$lib/device-visuals/DeviceVisualBus.svelte";
 import type {ComponentType} from "svelte";
+import {v4} from "uuid";
 
 export abstract class TickReceiver implements IMachineSerializable, IMachineVisualizable {
-    public abstract svelteComponent: ComponentType | undefined;
+    public abstract svelteComponent: ComponentType | null;
 
     public lastTick: number = -1;
+    public uuid: string = v4();
 
     public HasTicked(tick: number) {
         return this.lastTick == tick;
@@ -24,18 +26,18 @@ export abstract class TickReceiver implements IMachineSerializable, IMachineVisu
 
     public abstract getState(): any;
 
-    public abstract serialize(): { name: string; context: any };
+    public abstract serialize(): { name: string; uuid: string; context: any };
 }
 
 export abstract class Device<Address, Data> extends TickReceiver {
     public lastIO: number = -1;
-    protected _response: Data | undefined = undefined;
+    protected _response: Data | null = null;
 
     public HasDoneIO(ioTick: number) {
         return this.lastIO == ioTick;
     }
 
-    public Read(ioTick: number, address: Address): Data | undefined {
+    public Read(ioTick: number, address: Address): Data | null {
         if (!this.HasDoneIO(ioTick)) {
             this._response = this.DeviceRead(ioTick, address);
             this.lastIO = ioTick;
@@ -51,26 +53,26 @@ export abstract class Device<Address, Data> extends TickReceiver {
         }
     }
 
-    protected abstract DeviceRead(ioTick: number, address: Address): Data | undefined;
+    protected abstract DeviceRead(ioTick: number, address: Address): Data | null;
 
     protected abstract DeviceWrite(ioTick: number, address: Address, data: Data): void;
 
-    public abstract serialize(): { name: string; context: any };
+    public abstract serialize(): { name: string; uuid: string; context: any };
 }
 
 export interface IBusState<Address, Data> {
-    address: Address | undefined;
-    value: Data | undefined;
-    isRead: boolean | undefined;
+    address: Address | null;
+    value: Data | null;
+    isRead: boolean | null;
 }
 
 export class Bus<Address, Data> extends Device<Address, Data> {
-    public svelteComponent: ComponentType | undefined = DeviceVisualBus;
+    public svelteComponent: ComponentType | null = DeviceVisualBus;
     protected _devices: Device<Address, Data>[];
     private _lastOperation: IBusState<Address, Data> = {
-        address: undefined,
-        value: undefined,
-        isRead: undefined
+        address: null,
+        value: null,
+        isRead: null
     };
 
     constructor(devices: Device<Address, Data>[]) {
@@ -87,15 +89,15 @@ export class Bus<Address, Data> extends Device<Address, Data> {
         this._devices = [...this._devices, device];
     }
 
-    public DeviceRead(ioTick: number, address: Address): Data | undefined {
-        let response: Data | undefined = undefined;
-        let responseDevice: Device<Address, Data> | undefined = undefined;
+    public DeviceRead(ioTick: number, address: Address): Data | null {
+        let response: Data | null = null;
+        let responseDevice: Device<Address, Data> | null = null;
         for (const device of this._devices) {
             let deviceResponse = device.Read(ioTick, address);
-            if (response === undefined) {
+            if (response == null) {
                 response = deviceResponse;
                 responseDevice = device;
-            } else if (deviceResponse !== undefined) {
+            } else if (deviceResponse != null) {
                 // Only one device should write back to the bus
                 throw `Bus collision with device ${device} (${deviceResponse}) and ${responseDevice} (${response})!`;
             }
@@ -120,11 +122,11 @@ export class Bus<Address, Data> extends Device<Address, Data> {
 
         if (this.lastIO != tick) {
             // Then no operations were done on this tick
-            this._lastOperation = {address: undefined, value: undefined, isRead: undefined};
+            this._lastOperation = {address: null, value: null, isRead: null};
         }
     }
 
-    public serialize(): { name: string; context: any } {
+    public serialize(): { name: string; uuid: string; context: any } {
         throw "Not implemented";
 
         //return {name: "bus", context: undefined};
@@ -152,8 +154,8 @@ export abstract class Master<Address, Data> extends TickReceiver {
 
     protected abstract MasterIO(ioTick: number): void;
 
-    public abstract serialize(): { name: string; context: any };
+    public abstract serialize(): { name: string; uuid: string; context: any };
 }
 
-export const MasterBusDeviceRegistry: { [name: string]: ((context: any) => Device<number, number>) } = {};
-export const MasterBusMasterRegistry: { [name: string]: ((context: any) => Master<number, number>) } = {};
+export const MasterBusDeviceRegistry: { [name: string]: ((context: any, uuid?: string) => Device<number, number>) } = {};
+export const MasterBusMasterRegistry: { [name: string]: ((context: any, uuid?: string) => Master<number, number>) } = {};

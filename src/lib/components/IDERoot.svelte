@@ -22,11 +22,14 @@
     import EditorHex from "$lib/editors/EditorHex.svelte";
     import {makeHexState} from "$lib/editors/EditorHex";
     import IconButton from "$lib/components/IconButton.svelte";
+    import "$lib/backend/BuildSystem/BuildPrograms/All";
+    import SideBarLogViewer from "$lib/side-bar/SideBarLogViewer.svelte";
+    import {LoggerManager, LogLevel} from "$lib/backend/Logger";
 
-    let sideBarToolTopLeft: SideBarToolPair | undefined;
-    let sideBarToolTopRight: SideBarToolPair | undefined;
-    let sideBarToolBottomLeft: SideBarToolPair | undefined;
-    let sideBarToolBottomRight: SideBarToolPair | undefined;
+    let sideBarToolTopLeft: SideBarToolPair | null;
+    let sideBarToolTopRight: SideBarToolPair | null;
+    let sideBarToolBottomLeft: SideBarToolPair | null;
+    let sideBarToolBottomRight: SideBarToolPair | null;
 
     let buttonsTopLeft: SideBarToolPair[] = [
         {
@@ -34,24 +37,17 @@
             name: "Project Browser",
             icon: "folder",
             iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
+            state: null
         }
     ];
 
     let buttonsBottomLeft: SideBarToolPair[] = [
         {
-            type: SideBarTest,
-            name: "Side Bar Test",
-            icon: "folder",
+            type: SideBarLogViewer,
+            name: "Logs",
+            icon: "list_alt",
             iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
-        },
-        {
-            type: SideBarTest,
-            name: "Side Bar Test 2",
-            icon: "folder",
-            iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
+            state: null
         }];
 
     let buttonsTopRight: SideBarToolPair[] = [
@@ -60,7 +56,7 @@
             name: "Machine overview",
             icon: "developer_board",
             iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
+            state: null
         }];
 
     let buttonsBottomRight: SideBarToolPair[] = [
@@ -69,7 +65,7 @@
             name: "Side Bar Test",
             icon: "folder",
             iconStatus: writable(ButtonStatusIcon.None),
-            state: undefined
+            state: null
         }];
 
     let projectNameInput: HTMLInputElement;
@@ -104,8 +100,8 @@
                 isText = false;
         }
 
-        let editor: ComponentType<EditorTabConstraint> | undefined = undefined;
-        let state: any = undefined;
+        let editor: ComponentType<EditorTabConstraint> | null = null;
+        let state: any = null;
         switch (extension) {
             case "rvedu":
                 if (isText) {
@@ -121,7 +117,7 @@
                 break;
         }
 
-        if (editor === undefined) {
+        if (editor === null) {
             if (isText) {
                 editor = EditorMonaco;
                 state = makeMonacoState(file, undefined);
@@ -175,7 +171,7 @@
         {/each}
     </select>
     <button on:click={() => SaveAll()}>DEBUG: save all files</button>
-    {#if ($currentProject !== undefined)}
+    {#if ($currentProject != null)}
         <button on:click={() => $currentProject?.MachineTick()}>DEBUG: tick</button>
     {:else}
         <input type="text" placeholder="project name" bind:this={projectNameInput}>
@@ -183,6 +179,12 @@
             DEBUG: make a new project
         </button>
     {/if}
+    <button on:click={() => LoggerManager.The.getLogger('test').log('test', LogLevel.Warning)}>DEBUG: make a logger</button>
+    <div style="flex-grow: 1"/>
+    <IconButton icon="play"
+                status={writable(ButtonStatusIcon.None)}
+                alt="Run the machine"
+                size={32}/>
 </header>
 
 <main on:fsOpen={openFile}>
@@ -192,7 +194,7 @@
     </SideBar>
 
     <div class="grid">
-        {#if (sideBarToolTopLeft !== undefined)}
+        {#if (sideBarToolTopLeft != null)}
             <div class="tool-window left surface-variant on-surface-variant-text">
                 <svelte:component this={sideBarToolTopLeft.type}
                                   bind:state={sideBarToolTopLeft.state}
@@ -204,7 +206,7 @@
             <TabbedEditor bind:this={tabbedEditor}/>
         </div>
 
-        {#if (sideBarToolTopRight !== undefined)}
+        {#if (sideBarToolTopRight != null)}
             <div class="tool-window right">
                 <svelte:component this={sideBarToolTopRight.type}
                                   bind:state={sideBarToolTopRight.state}
@@ -213,16 +215,16 @@
         {/if}
 
 
-        {#if (sideBarToolBottomLeft !== undefined || sideBarToolBottomRight !== undefined)}
+        {#if (sideBarToolBottomLeft != null || sideBarToolBottomRight != null)}
             <div class="bottom">
-                {#if (sideBarToolBottomLeft !== undefined)}
+                {#if (sideBarToolBottomLeft != null)}
                     <div class="left">
                         <svelte:component this={sideBarToolBottomLeft.type}
                                           bind:state={sideBarToolBottomLeft.state}
                                           bind:iconStatus={sideBarToolBottomLeft.iconStatus}/>
                     </div>
                 {/if}
-                {#if (sideBarToolBottomRight !== undefined)}
+                {#if (sideBarToolBottomRight != null)}
                     <div class="right">
                         <svelte:component this={sideBarToolBottomRight.type}
                                           bind:state={sideBarToolBottomRight.state}
