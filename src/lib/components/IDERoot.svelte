@@ -111,6 +111,13 @@
                 }
                 break;
 
+            case "s":
+                if (isText) {
+                    editor = EditorMonaco;
+                    state = makeMonacoState(file, "asm");
+                }
+                break;
+
             case "bin":
             case "dat":
                 isText = false;

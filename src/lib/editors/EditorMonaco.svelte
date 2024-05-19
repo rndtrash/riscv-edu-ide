@@ -18,7 +18,7 @@
         monaco = (await import('./monaco')).default;
 
         // Your monaco instance is ready, let's display some code!
-        editor = monaco.editor.create(editorContainer, {automaticLayout: true});
+        editor = monaco.editor.create(editorContainer, {theme: 'riscv-edu-ide-theme', automaticLayout: true});
         state ??= makeMonacoState();
         state.save = () => {
             if (hasChanges && state != null && state.file !== undefined) {
