@@ -37,7 +37,7 @@ export class BuildStage {
         return false;
     }
 
-    public run(logger: Logger): boolean {
+    public run(project: Project, logger: Logger): boolean {
         for (const value of this.programsSequence) {
             try {
                 const result = value.program(logger, value.arguments);
@@ -75,24 +75,36 @@ export class BuildStage {
     }
 }
 
+export interface IProjectBuilder {
+    buildStages: IBuildStage[];
+}
+
 export class ProjectBuilder {
-    private project: Project;
     private buildStages: BuildStage[];
 
-    public constructor(project: Project, buildStages: BuildStage[]) {
-        this.project = project;
+    public constructor(buildStages: BuildStage[]) {
         this.buildStages = buildStages;
     }
 
-    public run(logger: Logger, force: boolean = false): boolean {
+    public run(project: Project, logger: Logger, force: boolean = false): boolean {
         for (const stage of this.buildStages) {
             if (force || !stage.isUpToDate) {
-                const success = stage.run(logger);
+                const success = stage.run(project, logger);
                 if (!success)
                     return false;
             }
         }
 
         return true;
+    }
+
+    public toJSON(): IProjectBuilder {
+        return {
+            buildStages: this.buildStages.map((bs) => bs.toJSON())
+        };
+    }
+
+    public static FromJSON(json: IProjectBuilder): ProjectBuilder {
+        return new ProjectBuilder(json.buildStages.map((ibs) => BuildStage.fromJSON(ibs)));
     }
 }

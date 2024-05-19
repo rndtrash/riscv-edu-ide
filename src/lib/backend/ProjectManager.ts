@@ -3,22 +3,26 @@ import {Exists, FSFile, FSFolder, Open, SaveAll} from "$lib/backend/FileSystem";
 import {rootFolder} from "$lib/backend/FileSystem";
 import {Machine} from "$lib/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "$lib/backend/Emulator/Machine";
-import {MakeADD, MakeADDI, MakeNOP, MakeSW} from "$lib/backend/Emulator/Masters/RISCV32";
+import {MakeADD, MakeADDI, MakeNOP, MakeSW, MakeJ} from "$lib/backend/Emulator/Masters/RISCV32";
 import {LoggerManager} from "$lib/backend/Logger";
+import {BuildStage, type IProjectBuilder, ProjectBuilder} from "$lib/backend/BuildSystem/ProjectBuilder";
 
 export class Project {
     protected _machine: Machine;
     protected _file: FSFile;
+    protected _projectBuilder: ProjectBuilder;
 
-    public constructor(systemConfiguration: ISystemConfiguration, file: FSFile) {
+    public constructor(systemConfiguration: ISystemConfiguration, file: FSFile, projectBuilder: ProjectBuilder) {
         this._machine = Machine.FromSystemConfiguration(systemConfiguration);
         this._file = file;
+        this._projectBuilder = projectBuilder;
     }
 
     public static FromJSON(json: IProjectJson, file: FSFile): Project {
         const project = new Project(
             json.systemConfiguration ?? [],
-            file
+            file,
+            ProjectBuilder.FromJSON(json.projectBuilder)
         );
         project.Save();
         return project;
@@ -50,7 +54,8 @@ export class Project {
 
     public ToJSON(): IProjectJson {
         return {
-            systemConfiguration: this._machine.ToSystemConfiguration()
+            systemConfiguration: this._machine.ToSystemConfiguration(),
+            projectBuilder: this._projectBuilder.toJSON()
         };
     }
 
@@ -62,6 +67,7 @@ export class Project {
 
 interface IProjectJson {
     systemConfiguration: ISystemConfiguration,
+    projectBuilder: IProjectBuilder
 }
 
 export const PROJECT_EXTENSION: string = ".rvedu";
@@ -121,14 +127,23 @@ export function makeProject(folderName: string): void {
                             MakeADDI(0, 1, 40),
                             MakeADDI(0, 2, 2),
                             MakeADD(1, 2, 3),
-                            MakeSW(0, 3, 128)
+                            MakeSW(0, 3, 128),
+                            MakeJ(0),
                         ],
                         readOnly: true
                     }
                 }
             ]
-        }
+        },
+        projectBuilder: (new ProjectBuilder([
+            // TODO:
+            new BuildStage("run", ["main.s"], ["main.s.o"], [])
+        ])).toJSON()
     }, projectFile));
+
+    let mainSFile = Open(`/${folderName}/main.s`, true, true);
+    mainSFile?.write("start:\n\tnop\n\taddi x1, x0, $40\n\taddi x2, x0, $2\n\tadd x3, x1, x2\n\tsw x3, $128(x0)\n\tj $0");
+
     listenToProjectChange();
     updateAvailableProjects();
 }

@@ -129,7 +129,13 @@ export interface IRv32SInstruction {
     imm: number;
 }
 
-export type IRv32Instruction = IRv32RInstruction | IRv32IInstruction | IRv32SInstruction;
+export interface IRv32JInstruction {
+    opcode: Rv32OpCodes;
+    rd: number;
+    imm: number;
+}
+
+export type IRv32Instruction = IRv32RInstruction | IRv32IInstruction | IRv32SInstruction | IRv32JInstruction;
 
 function VerifyOpcode(opcode: number) {
     console.assert(opcode < 128);
@@ -163,6 +169,13 @@ function VerifySInstruction(i: IRv32SInstruction) {
     console.assert(i.rs1 < 32);
     console.assert(i.rs2 < 32);
     console.assert(i.imm < 4096);
+}
+
+function VerifyJInstruction(i: IRv32JInstruction) {
+    VerifyOpcode(i.opcode);
+
+    console.assert(i.rd < 32);
+    console.assert(i.imm < 1048576);
 }
 
 function MakeRInstruction(i: IRv32RInstruction): number {
@@ -200,6 +213,20 @@ function MakeSInstruction(i: IRv32SInstruction): number {
         | i.rs1 << (7 + 5 + 3)
         | i.rs2 << (7 + 5 + 3 + 5)
         | ((i.imm >> 5) & 0b111_1111) << (7 + 5 + 3 + 5 + 5)
+    );
+}
+
+function MakeJInstruction(i: IRv32JInstruction): number {
+    VerifyJInstruction(i);
+
+    return (
+        i.opcode
+        | i.rd << 7
+        // imm[19|9:0|10|18:11]
+        | ((i.imm >> 11) & 0b1111_1111) << (7 + 5)
+        | ((i.imm >> 10) & 0b1) << (7 + 5 + 8)
+        | (i.imm & 0b11_1111_1111) << (7 + 5 + 8 + 1)
+        | ((i.imm >> 19) & 0b1) << (7 + 5 + 8 + 1 + 10)
     );
 }
 
@@ -250,6 +277,18 @@ export function MakeSW(addressRegister: number, valueRegister: number, offset: n
     });
 }
 
+export function MakeJAL(destinationRegister: number, offset: number): number {
+    return MakeJInstruction({
+        opcode: Rv32OpCodes.JAL,
+        rd: destinationRegister,
+        imm: offset
+    });
+}
+
+export function MakeJ(offset: number): number {
+    return MakeJAL(0, offset);
+}
+
 export function DecodeInstruction(instruction: number): IRv32Instruction | undefined {
     const opcode: Rv32OpCodes = instruction & 0b111_1111;
     VerifyOpcode(opcode);
@@ -283,6 +322,19 @@ export function DecodeInstruction(instruction: number): IRv32Instruction | undef
                 rs2: (instruction >> (7 + 5 + 3 + 5)) & 0b1_1111,
                 imm: ((instruction >> 7) & 0b1_1111) | (((instruction >> (7 + 5 + 3 + 5 + 5)) & 0b111_1111) << 5),
             } as IRv32SInstruction;
+
+        case Rv32OpCodes.JAL: {
+            const immShuffled = instruction >> 7;
+            return {
+                opcode: opcode,
+                rd: (instruction >> 7) & 0b1_1111,
+                // imm[19|9:0|10|18:11]
+                imm: (((immShuffled >> 19) & 0b1) << (10 + 1 + 8))
+                    | ((immShuffled & 0b1111_1111) << (10 + 1))
+                    | (((immShuffled >> 10) & 0b1) << 10)
+                    | ((immShuffled >> 9) & 0b11_1111_1111)
+            } as IRv32JInstruction;
+        }
     }
 
     return undefined;
@@ -423,6 +475,16 @@ export class Rv32CPU extends Master<number, number> {
                             default:
                                 console.error(`rv32: unknown S funct3 ${store.funct3}`);
                         }
+                        break;
+                    }
+
+                    case Rv32OpCodes.JAL: {
+                        const jal = instruction as IRv32JInstruction;
+                        const offset = signExtend(jal.imm, 20);
+                        console.log(`rv32: JAL r${jal.rd} = 0x${(this._ip + 4).toString(16)}`);
+                        this.setRegister(jal.rd, this._ip + 4);
+                        console.log(`rv32: JAL ip = 0x${(this._ip + offset).toString(16)}`);
+                        this.nextInstruction(this._ip + offset);
                         break;
                     }
 
