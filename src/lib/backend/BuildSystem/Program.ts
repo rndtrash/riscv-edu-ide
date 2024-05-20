@@ -7,4 +7,9 @@ export enum ProgramStatus {
 
 export type Program = (logger: Logger, ...args: any[]) => ProgramStatus;
 
-export const BuildPrograms: { [name: string]: (...args: any[]) => ProgramStatus } = {};
+export const BuildPrograms: {
+    [name: string]: {
+        // TODO: scheme
+        program: Program
+    }
+} = {};

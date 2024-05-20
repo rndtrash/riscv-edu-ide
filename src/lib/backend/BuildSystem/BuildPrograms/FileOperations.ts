@@ -4,4 +4,14 @@ function runCp(...args: any[]): ProgramStatus {
     return ProgramStatus.Failure;
 }
 
-BuildPrograms["cp"] = runCp;
+function runRm(...args: any[]): ProgramStatus {
+    return ProgramStatus.Failure;
+}
+
+BuildPrograms["cp"] = {
+    program: runCp
+};
+
+BuildPrograms["rm"] = {
+    program: runRm
+};
