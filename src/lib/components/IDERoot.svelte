@@ -111,6 +111,13 @@
                 }
                 break;
 
+            case "o":
+                if (isText) {
+                    editor = EditorMonaco;
+                    state = makeMonacoState(file, "json");
+                }
+                break;
+
             case "s":
                 if (isText) {
                     editor = EditorMonaco;
@@ -191,6 +198,13 @@
     <IconButton icon="play"
                 status={writable(ButtonStatusIcon.None)}
                 alt="Run the machine"
+                size={32}/>
+    <IconButton icon="construction"
+                status={writable(ButtonStatusIcon.None)}
+                alt="Build the project"
+                on:click={() => {
+
+                }}
                 size={32}/>
 </header>
 

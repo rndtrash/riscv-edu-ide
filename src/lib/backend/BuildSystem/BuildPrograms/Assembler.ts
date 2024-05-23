@@ -31,18 +31,21 @@ export class RvAssembler {
 
     private tokenize(source: string) {
         class Token {
-            static get type() { return RvAssemblerTokens.INVALID; }
+            static get type() {
+                return RvAssemblerTokens.INVALID;
+            }
 
-            constructor() { }
+            constructor() {
+            }
 
             static parse(string: string) {
-                return { token: undefined, length: 0 };
+                return {token: undefined, length: 0};
             }
         }
 
         class Whitespace {
             static parse(string: string) {
-                return { token: undefined, length: RvAssemblerRegularExpressions.whitespace.exec(string)![0].length }; // implying that this regexp would always match even when there are no whitespaces at all
+                return {token: undefined, length: RvAssemblerRegularExpressions.whitespace.exec(string)![0].length}; // implying that this regexp would always match even when there are no whitespaces at all
             }
         }
 
@@ -52,12 +55,12 @@ export class RvAssembler {
                     let pos = 1;
                     while (pos < string.length) {
                         if (string[pos] == '\n') {
-                            return { token: undefined, length: pos };
+                            return {token: undefined, length: pos};
                         }
                         pos++;
                     }
 
-                    return { token: undefined, length: pos };
+                    return {token: undefined, length: pos};
                 }
 
                 return super.parse(string);
@@ -65,29 +68,46 @@ export class RvAssembler {
         }
 
         class SingleCharacterToken extends Token {
-            static get character() { return undefined; }
+            static get character() {
+                return undefined;
+            }
 
             static parse(string: string) {
                 if (string[0] == this.character)
-                    return { token: new this(), length: 1 };
+                    return {token: new this(), length: 1};
 
                 return super.parse(string);
             }
         }
 
         class NewLine extends SingleCharacterToken {
-            static get type() { return RvAssemblerTokens.NEW_LINE; }
-            static get character() { return '\n'; }
+            static get type() {
+                return RvAssemblerTokens.NEW_LINE;
+            }
+
+            static get character() {
+                return '\n';
+            }
         }
 
         class Comma extends SingleCharacterToken {
-            static get type() { return RvAssemblerTokens.COMMA; }
-            static get character() { return ','; }
+            static get type() {
+                return RvAssemblerTokens.COMMA;
+            }
+
+            static get character() {
+                return ',';
+            }
         }
 
         class Colon extends SingleCharacterToken {
-            static get type() { return RvAssemblerTokens.COLON; }
-            static get character() { return ':'; }
+            static get type() {
+                return RvAssemblerTokens.COLON;
+            }
+
+            static get character() {
+                return ':';
+            }
         }
 
         class TokenWithValue extends Token {
@@ -101,20 +121,23 @@ export class RvAssembler {
         }
 
         class Literal extends TokenWithValue {
-            static get type() { return RvAssemblerTokens.LITERAL; }
+            static get type() {
+                return RvAssemblerTokens.LITERAL;
+            }
+
             static regexp = new RegExp(`^${RvAssemblerRegularExpressions.literal.source}`);
 
             static parse(s: string) {
                 let exec = this.regexp.exec(s);
                 if (exec) {
-                    return { token: new this(exec[0]), length: exec[0].length };
+                    return {token: new this(exec[0]), length: exec[0].length};
                 }
 
                 return super.parse(s);
             }
         }
 
-        const PARSE_ORDER = [
+        const PARSE_ORDER: ((s: string) => { length: number, token: any })[] = [
             (s) => Whitespace.parse(s),
             (s) => NewLine.parse(s),
             (s) => Comma.parse(s),
