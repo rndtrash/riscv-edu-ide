@@ -1,0 +1,25 @@
+:root {
+    --color-light-primary: #C2F18D;
+    --color-light-primary-text: #000000;
+
+    --color-light-secondary: #E4F0D7;
+
+    --color-light-tertiary: #FFFFFF;
+    
+    --color-light-highlight: #448000;
+}
+
+@media (prefers-color-scheme: dark) {
+    /* TODO: dark theme */
+	:root {
+		color: #ccc;
+		background-color: #1a1a1a;
+	}
+	.resource {
+		color: #ccc;
+		background-color: #161616;
+	}
+	.resource:hover {
+		border: 1px solid #bbb;
+	}
+}
