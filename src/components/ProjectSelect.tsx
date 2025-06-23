@@ -3,6 +3,8 @@ import style from "./ProjectSelect.module.css";
 import { useProject } from "./ProjectContext";
 import { useFileSystem } from "./FileSystemContext";
 import { useEffect, useState } from "preact/hooks";
+import JSZip from "jszip";
+import { combinePath } from "src/backend/FileSystem";
 
 export function ProjectSelect() {
     const projectContext = useProject();
@@ -39,6 +41,39 @@ export function ProjectSelect() {
                 <option disabled>----------</option>
                 {projectsList.map((name) => <option>{name}</option>)}
             </select>
+            <button>Import</button>
+            <button onClick={async () => {
+                const zip = new JSZip();
+                async function addFolder(folder: FileSystemDirectoryHandle, crumbs: string[]) {
+                    const newCrumbs = [...crumbs, folder.name];
+                    const path = combinePath(newCrumbs);
+                    // zip.folder(path);
+                    zip.file(path, null, { dir: true });
+                    for await (const [name, handle] of folder.entries()) {
+                        if (handle.kind === 'directory') {
+                            await addFolder(handle as FileSystemDirectoryHandle, newCrumbs);
+                        } else {
+                            const fileHandle = handle as FileSystemFileHandle;
+                            const file = await fileHandle.getFile();
+                            const filePath = combinePath([path, name]);
+                            console.log(filePath);
+                            zip.file(filePath, await file.arrayBuffer(), { binary: true });
+                        }
+                    }
+                }
+                await addFolder(projectContext.projectFolder, []);
+                const bytes = await zip.generateAsync({ type: "uint8array" });
+                const blob = new Blob([bytes], { type: 'application/octet-stream' });
+                const blobUrl = URL.createObjectURL(blob);
+                {
+                    const a = window.document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = `${projectContext.projectName}.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            }}>Export</button>
         </div>
     );
 }
