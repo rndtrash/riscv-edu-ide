@@ -1,5 +1,40 @@
-const PATH_SEPARATOR: string = "/";
+export const PATH_SEPARATOR: string = "/";
 const PATH_PREFIX: string = "file:";
+
+export async function getFile(path: string, root: FileSystemDirectoryHandle): Promise<FileSystemFileHandle | null> {
+    const crumbs = path.split(PATH_SEPARATOR);
+    if (path === "" || crumbs.length < 1) {
+        return null;
+    }
+
+    let currentDir = root;
+
+    // The last crumb is the file name
+    while (crumbs.length > 1) {
+        const element = crumbs.shift();
+        try {
+            currentDir = await currentDir.getDirectoryHandle(element);
+        } catch (ex) {
+            console.error(`Cannot find directory ${element} (${ex})`);
+            return null;
+        }
+    }
+
+    const filename = crumbs.shift();
+    let file: FileSystemFileHandle;
+    try {
+        file = await currentDir.getFileHandle(filename);
+    } catch (ex) {
+        console.error(`Cannot find file ${filename} (${ex})`);
+        return null;
+    }
+
+    return file;
+}
+
+export function combinePath(crumbs: string[]): string {
+    return crumbs.join(PATH_SEPARATOR);
+}
 
 interface IFSNodeJson {
     type: string;
@@ -180,7 +215,7 @@ export class FSFile extends FSNode {
      * Throws an exception if the file is not a valid UTF-8 text
      */
     public get text(): string {
-        return new TextDecoder(undefined, {fatal: true}).decode(this._contents);
+        return new TextDecoder(undefined, { fatal: true }).decode(this._contents);
     }
 
     public write(contents: Uint8Array | string, notify: boolean = true): void {
@@ -196,7 +231,7 @@ export class FSFile extends FSNode {
                 onload: () => resolve(reader.result?.toString() ?? ""),
                 onerror: () => reject(reader.error),
             });
-            reader.readAsDataURL(new File([bytes], "", {type}));
+            reader.readAsDataURL(new File([bytes], "", { type }));
         });
     }
 

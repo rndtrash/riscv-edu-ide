@@ -10,6 +10,7 @@
 	"dependencies": {
 		"@preact/signals": "^2.0.4",
 		"jszip": "^3.10.1",
+		"monaco-editor": "^0.52.2",
 		"preact": "^10.25.3",
 		"uuid": "^11.1.0"
 	},

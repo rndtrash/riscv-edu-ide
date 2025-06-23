@@ -1,5 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { useFileSystem } from "src/components/FileSystemContext";
+import style from "./FileBrowser.module.css";
+import { useEditorManager } from "../editors/EditorManager";
+import { combinePath } from "src/backend/FileSystem";
 
 type Entry = {
     name: string;
@@ -9,9 +12,12 @@ type Entry = {
 
 export function FileBrowser(props: {
     dirHandle: FileSystemDirectoryHandle,
-    depth?: number
+    ancestors?: string[]
 }) {
-    const depth = props.depth ?? 0;
+    const ancestors = props.ancestors ?? [];
+    const depth = ancestors.length;
+
+    const editorManager = useEditorManager();
 
     const [entries, setEntries] = useState<Entry[]>([]);
     const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
@@ -76,14 +82,16 @@ export function FileBrowser(props: {
                 {entries.map(ent => (
                     <li key={ent.name} style={{ padding: '0.25rem 0' }}>
                         {ent.isFile ? (
-                            <span>📄 {ent.name}</span>
+                            <span class={style.entry} onClick={() => {
+                                editorManager.openFile(combinePath([...ancestors, ent.name]));
+                            }}>📄 {ent.name}</span>
                         ) : (
                             <div>
-                                <span style={{ cursor: 'pointer' }} onClick={() => toggleDir(ent.name)}>
+                                <span class={style.entry} onClick={() => toggleDir(ent.name)}>
                                     {expandedDirs[ent.name] ? '📂' : '📁'} {ent.name}
                                 </span>
                                 {expandedDirs[ent.name] && (
-                                    <FileBrowser dirHandle={ent.handle as FileSystemDirectoryHandle} depth={depth + 1} />
+                                    <FileBrowser dirHandle={ent.handle as FileSystemDirectoryHandle} ancestors={[...ancestors, ent.name]} />
                                 )}
                             </div>
                         )}

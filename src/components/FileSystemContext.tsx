@@ -1,4 +1,4 @@
-import { createContext } from 'preact';
+import { ComponentChildren, createContext } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 
 type FileSystemContextType = {
@@ -11,7 +11,7 @@ const FileSystemContext = createContext<FileSystemContextType>({
     refresh: async () => { },
 });
 
-export function FileSystemProvider({ children }: { children: preact.ComponentChildren }) {
+export function FileSystemProvider({ children }: { children: ComponentChildren }) {
     const [rootDir, setRootDir] = useState<FileSystemDirectoryHandle | null>(null);
 
     const init = async () => {

@@ -64,10 +64,18 @@ div.sidebar {
 	}
 
 	&.visible {
-		min-width: 25vw;
+		min-width: min(25vw, 300px);
 	}
 }
 
 div.editor {
-	/* TODO: */
+	position: relative;
+
+	>* {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+	}
 }
