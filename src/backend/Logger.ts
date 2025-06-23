@@ -1,5 +1,3 @@
-import {get, type Writable, writable} from "svelte/store";
-
 export enum LogLevel {
     Info = 0,
     Warning,
@@ -70,47 +68,47 @@ export class NewLoggerEvent extends Event {
     }
 }
 
-export class LoggerManager extends EventTarget {
-    private static _the: LoggerManager;
-    public loggers = writable<{ loggers: { [id: string]: Logger } }>({loggers: {}});
+// export class LoggerManager extends EventTarget {
+//     private static _the: LoggerManager;
+//     public loggers = writable<{ loggers: { [id: string]: Logger } }>({loggers: {}});
 
-    private constructor() {
-        super();
+//     private constructor() {
+//         super();
 
-        LoggerManager._the = this;
-    }
+//         LoggerManager._the = this;
+//     }
 
-    public static get The() {
-        return LoggerManager._the ?? new LoggerManager();
-    }
+//     public static get The() {
+//         return LoggerManager._the ?? new LoggerManager();
+//     }
 
-    public reset() {
-        this.loggers.set({loggers: {}});
-    }
+//     public reset() {
+//         this.loggers.set({loggers: {}});
+//     }
 
-    public getLogger(id: string): Logger {
-        return get(this.loggers).loggers[id] ?? this.createLogger(id);
-    }
+//     public getLogger(id: string): Logger {
+//         return get(this.loggers).loggers[id] ?? this.createLogger(id);
+//     }
 
-    public createLogger(id: string = `${Math.random()}`, name: string = "New log"): Logger {
-        console.log(get(this.loggers));
-        let logger: Logger | undefined = get(this.loggers).loggers[id];
-        if (logger !== undefined) {
-            logger.clear();
-            return logger;
-        }
+//     public createLogger(id: string = `${Math.random()}`, name: string = "New log"): Logger {
+//         console.log(get(this.loggers));
+//         let logger: Logger | undefined = get(this.loggers).loggers[id];
+//         if (logger !== undefined) {
+//             logger.clear();
+//             return logger;
+//         }
 
-        console.log(`Making a new logger "${name}"`);
-        logger = new Logger(name);
-        this.loggers.update((o) => {
-            o.loggers[id] = logger!;
-            return o;
-        });
-        logger.addEventListener('log-event', e => {
-            if (e instanceof NewLogEntryEvent)
-                dispatchEvent(new LoggerManagerEvent(id, e.entry))
-        });
-        dispatchEvent(new NewLoggerEvent(id));
-        return logger;
-    }
-}
+//         console.log(`Making a new logger "${name}"`);
+//         logger = new Logger(name);
+//         this.loggers.update((o) => {
+//             o.loggers[id] = logger!;
+//             return o;
+//         });
+//         logger.addEventListener('log-event', e => {
+//             if (e instanceof NewLogEntryEvent)
+//                 dispatchEvent(new LoggerManagerEvent(id, e.entry))
+//         });
+//         dispatchEvent(new NewLoggerEvent(id));
+//         return logger;
+//     }
+// }

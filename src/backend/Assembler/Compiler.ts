@@ -14,9 +14,10 @@ function readLabel(tokens: Token[]) {
 }
 
 export function assemble(tokens: Token[]): Uint8Array {
-    const result = new ArrayBuffer(0);
+    const result = new ArrayBuffer();
     const dv = new DataView(result);
 
+    // Offset of instructions, always multiple of 4
     let currentOffset = 0;
     let labelPositions = new Map<string, number>();
     while (tokens.length > 0) {

@@ -1,6 +1,6 @@
-import type {Project} from "$lib/backend/ProjectManager";
-import {type Logger, LogLevel} from "$lib/backend/Logger";
-import {BuildPrograms, type Program, ProgramStatus} from "$lib/backend/BuildSystem/Program";
+import type {Project} from "src/backend/ProjectManager";
+import {type Logger, LogLevel} from "src/backend/Logger";
+import {BuildPrograms, type Program, ProgramStatus} from "src/backend/BuildSystem/Program";
 
 export interface IBuildStageProgram {
     name: string;

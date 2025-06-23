@@ -3,6 +3,7 @@ export enum SpecialSymbols {
     LABEL = ":",
     COMMA = ",",
     DIRECTIVE = ".",
+    PREPROCESSOR = "#",
     NEW_LINE = "\n",
     NEW_LINE_WINDOWS = "\r"
 }
@@ -14,6 +15,21 @@ export abstract class Token {
     constructor(start: number, length: number) {
         this.start = start;
         this.length = length;
+    }
+}
+
+export class Space extends Token {
+    static TryParse(input: string, start: number): Space | null {
+        let pos = start;
+        while (pos < input.length && (input[pos] == " " || input[pos] == "\t")) {
+            pos++;
+        }
+
+        if (pos != start) {
+            return new Space(start, pos - start);
+        }
+
+        return null;
     }
 }
 
@@ -36,6 +52,16 @@ export class Colon extends Token {
     static TryParse(input: string, start: number): Colon | null {
         if (start < input.length && input[start] === SpecialSymbols.LABEL) {
             return new Colon(start, 1);
+        }
+
+        return null;
+    }
+}
+
+export class Dot extends Token {
+    static TryParse(input: string, start: number): Dot | null {
+        if (start < input.length && input[start] === SpecialSymbols.DIRECTIVE) {
+            return new Dot(start, 1);
         }
 
         return null;
@@ -127,9 +153,11 @@ export function tokenize(input: string): Token[] {
 
     const tokens: Token[] = [];
 
-    const parseOrder = [
+    const parseOrder: ((input: string, start: number) => Token | null)[] = [
+        Space.TryParse,
         Comment.TryParse,
         Colon.TryParse,
+        Dot.TryParse,
         Comma.TryParse,
         NewLine.TryParse,
         Number.TryParse,
@@ -141,20 +169,6 @@ export function tokenize(input: string): Token[] {
 
     restartParsing:
     while (position < inputLength) {
-        let char = input[position];
-        let newPosition = position;
-
-        // Skip the space symbols
-        while ((char === " " || char === "\t") && newPosition < inputLength) {
-            newPosition++;
-            char = input[newPosition];
-        }
-
-        if (newPosition !== position) {
-            position = newPosition;
-            continue;
-        }
-
         for (const parser of parseOrder) {
             const result = parser(input, position);
             if (result !== null) {

@@ -2,8 +2,8 @@ import {Exists, FSFile, FSFolder, Open, SaveAll} from "src/backend/FileSystem";
 import {rootFolder} from "src/backend/FileSystem";
 import {Machine} from "src/backend/Emulator/Machine";
 import type {ISystemConfiguration} from "src/backend/Emulator/Machine";
-import {MakeADD, MakeADDI, MakeNOP, MakeSW, MakeJ} from "src/backend/Emulator/Masters/RISCV32";
-import {LoggerManager} from "src/backend/Logger";
+import {MakeADD, MakeADDI, MakeNOP, MakeSW, MakeJ} from "src/backend/Assembler/Instructions";
+// import {LoggerManager} from "src/backend/Logger";
 import {BuildStage, type IProjectBuilder, ProjectBuilder} from "src/backend/BuildSystem/ProjectBuilder";
 import {signal} from '@preact/signals';
 
@@ -66,7 +66,7 @@ export class Project {
     }
 }
 
-interface IProjectJson {
+export interface IProjectJson {
     systemConfiguration: ISystemConfiguration,
     projectBuilder: IProjectBuilder
 }
@@ -169,7 +169,7 @@ export function closeProject(): void {
     }
     currentProject.value = null;
 
-    LoggerManager.The.reset();
+    // LoggerManager.The.reset();
 }
 
 function getJsonFromString(jsonString: string): IProjectJson | null {

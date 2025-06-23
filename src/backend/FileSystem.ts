@@ -1,5 +1,3 @@
-import {browser} from '$app/environment';
-
 const PATH_SEPARATOR: string = "/";
 const PATH_PREFIX: string = "file:";
 
@@ -264,7 +262,7 @@ async function parseNodesRecursive(path: string = PATH_PREFIX): Promise<FSNode> 
 export let rootFolder: FSFolder;
 
 export async function initializeFS(): Promise<void> {
-    if (browser) {
+    if (true) {
         let rf: FSNode = new FSFolder("");
         try {
             rf = await parseNodesRecursive();
