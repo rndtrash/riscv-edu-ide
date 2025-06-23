@@ -4,7 +4,7 @@ import { useProject } from "./ProjectContext";
 import { useFileSystem } from "./FileSystemContext";
 import { useEffect, useState } from "preact/hooks";
 import JSZip from "jszip";
-import { combinePath } from "src/backend/FileSystem";
+import { combinePath, PATH_SEPARATOR } from "src/backend/FileSystem";
 
 export function ProjectSelect() {
     const projectContext = useProject();
@@ -41,7 +41,49 @@ export function ProjectSelect() {
                 <option disabled>----------</option>
                 {projectsList.map((name) => <option>{name}</option>)}
             </select>
-            <button>Import</button>
+            <button onClick={async () => {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    multiple: false,
+                    types: [
+                        {
+                            description: 'Сжатые проекты',
+                            accept: {
+                                'application/x-zip': ['.zip'],
+                            },
+                        },
+                    ],
+                    excludeAcceptAllOption: false,
+                }) as FileSystemFileHandle[];
+                const file = await fileHandle.getFile();
+                const zip = new JSZip();
+                await zip.loadAsync(await file.arrayBuffer());
+                const entries: {relativePath: string, zipEntry: JSZip.JSZipObject}[] = [];
+                zip.forEach((relativePath, zipEntry) => {
+                    entries.push({relativePath, zipEntry});
+                });
+                while (entries.length > 0) {
+                    const {relativePath, zipEntry} = entries.pop();
+                    console.log(relativePath, zipEntry);
+                    const isFolder = relativePath.endsWith("/");
+                    const crumbs = relativePath.split(PATH_SEPARATOR);
+                    if (isFolder) {
+                        crumbs.pop();
+                    }
+                    
+                    let currentFolder = fs.rootDir;
+                    while (crumbs.length > (isFolder ? 0 : 1)) {
+                        const name = crumbs.shift();
+                        currentFolder = await currentFolder.getDirectoryHandle(name, {create: true});
+                    }
+                    if (!isFolder) {
+                        const name = crumbs.shift();
+                        const fileHandle = await currentFolder.getFileHandle(name, {create: true});
+                        const writable = await fileHandle.createWritable();
+                        writable.write(await zipEntry.async("arraybuffer") as ArrayBuffer);
+                        writable.close();
+                    }
+                }
+            }}>Import</button>
             <button onClick={async () => {
                 const zip = new JSZip();
                 async function addFolder(folder: FileSystemDirectoryHandle, crumbs: string[]) {

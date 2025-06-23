@@ -1,9 +1,9 @@
 export const PATH_SEPARATOR: string = "/";
 const PATH_PREFIX: string = "file:";
 
-export async function getFile(path: string, root: FileSystemDirectoryHandle): Promise<FileSystemFileHandle | null> {
+export async function getFile(path: string, root: FileSystemDirectoryHandle, create?: boolean): Promise<FileSystemFileHandle | null> {
     const crumbs = path.split(PATH_SEPARATOR);
-    if (path === "" || crumbs.length < 1) {
+    if (path === "" || crumbs.length < 1 || crumbs.at(-1) == "") {
         return null;
     }
 
@@ -23,7 +23,7 @@ export async function getFile(path: string, root: FileSystemDirectoryHandle): Pr
     const filename = crumbs.shift();
     let file: FileSystemFileHandle;
     try {
-        file = await currentDir.getFileHandle(filename);
+        file = await currentDir.getFileHandle(filename, {create: create ?? false});
     } catch (ex) {
         console.error(`Cannot find file ${filename} (${ex})`);
         return null;
