@@ -17,6 +17,7 @@ import { ProjectProvider } from './components/ProjectContext';
 import { FileBrowserSideBar } from './components/sidebars/FileBrowserSideBar';
 import { EditorContainer } from './components/editors/EditorContainer';
 import { EditorManager } from './components/editors/EditorManager';
+import { TabsProvider } from './components/TabsContext';
 
 export function App() {
 	return (
@@ -24,17 +25,19 @@ export function App() {
 			<LoadingBarrier>
 				<ProjectProvider>
 					<EditorManager>
-						<main>
-							<nav>
-								<ProjectSelect />
-								<Tabs />
-							</nav>
-							<FileBrowserSideBar />
-							<EditorContainer />
-							<SideBar title="Status" isLeftSide={false}>
-								<div>Test</div>
-							</SideBar>
-						</main>
+						<TabsProvider>
+							<main>
+								<nav>
+									<ProjectSelect />
+									<Tabs />
+								</nav>
+								<FileBrowserSideBar />
+								<EditorContainer />
+								<SideBar title="Status" isLeftSide={false}>
+									<div>Test</div>
+								</SideBar>
+							</main>
+						</TabsProvider>
 					</EditorManager>
 				</ProjectProvider>
 			</LoadingBarrier>

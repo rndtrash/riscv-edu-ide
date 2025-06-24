@@ -1,0 +1,9 @@
+div.tabs {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: stretch;
+    overflow-x: auto;
+
+    flex-grow: 1;
+    gap: 4px;
+}

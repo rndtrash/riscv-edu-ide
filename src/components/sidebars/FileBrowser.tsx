@@ -1,8 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
-import { useFileSystem } from "src/components/FileSystemContext";
 import style from "./FileBrowser.module.css";
-import { useEditorManager } from "../editors/EditorManager";
 import { combinePath } from "src/backend/FileSystem";
+import { openTab, useTabs } from "../TabsContext";
 
 type Entry = {
     name: string;
@@ -17,7 +16,7 @@ export function FileBrowser(props: {
     const ancestors = props.ancestors ?? [];
     const depth = ancestors.length;
 
-    const editorManager = useEditorManager();
+    const tabManager = useTabs();
 
     const [entries, setEntries] = useState<Entry[]>([]);
     const [expandedDirs, setExpandedDirs] = useState<Record<string, boolean>>({});
@@ -83,7 +82,7 @@ export function FileBrowser(props: {
                     <li key={ent.name} style={{ padding: '0.25rem 0' }}>
                         {ent.isFile ? (
                             <span class={style.entry} onClick={() => {
-                                editorManager.openFile(combinePath([...ancestors, ent.name]));
+                                openTab(tabManager, combinePath([...ancestors, ent.name]));
                             }}>📄 {ent.name}</span>
                         ) : (
                             <div>

@@ -1,21 +1,21 @@
 import { ComponentChildren, createContext } from "preact";
-import { useContext, useState } from "preact/hooks";
+import { Dispatch, StateUpdater, useContext, useState } from "preact/hooks";
 
 interface IEditorManager {
-    openFile: (path: string) => void;
-    currentFile: string;
+    saveFile: () => void;
+    setSaveCallback: Dispatch<StateUpdater<() => void>>;
 }
 
 const EditorManagerContext = createContext<IEditorManager>({
-    openFile: null,
-    currentFile: ""
+    saveFile: null,
+    setSaveCallback: null
 });
 
 export function EditorManager({ children }: { children: ComponentChildren }) {
-    const [file, setFile] = useState<string>("");
+    const [save, setSave] = useState<() => void>(null);
 
     return (
-        <EditorManagerContext.Provider value={{ openFile: setFile, currentFile: file }}>
+        <EditorManagerContext.Provider value={{ saveFile: save, setSaveCallback: setSave }}>
             {children}
         </EditorManagerContext.Provider>
     );
