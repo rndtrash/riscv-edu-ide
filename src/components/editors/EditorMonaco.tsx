@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { useProject } from '../ProjectContext';
 import { getFile } from 'src/backend/FileSystem';
 import { useEditorManager } from './EditorManager';
+import { PROJECT_EXTENSION } from 'src/backend/ProjectManager';
 
 self.MonacoEnvironment = {
     getWorker(_, label) {
@@ -105,7 +106,7 @@ export function EditorMonaco(props: { uri: string, context: IEditorMonacoContext
             // setLanguage(lang);
 
             if (editorRef.current) {
-                props.context.model ??= monaco.editor.createModel(text, 'asm');
+                props.context.model ??= monaco.editor.createModel(text, props.uri.endsWith(PROJECT_EXTENSION) ? 'json' : 'asm');
 
                 monacoRef.current = monaco.editor.create(editorRef.current, {
                     model: props.context.model,

@@ -55,9 +55,9 @@ export function closeTab(context: TabsContextType, uri: string) {
 }
 
 export function getEditor(uri: string): FunctionComponent<any> {
-    if (uri.endsWith(".rvedu")) {
-        return EditorProjectSettings;
-    }
+    // if (uri.endsWith(".rvedu")) {
+        // return EditorProjectSettings;
+    // }
 
     return EditorMonaco;
 }

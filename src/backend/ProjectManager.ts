@@ -27,6 +27,10 @@ export class Project {
         return this._machine;
     }
 
+    public get builder(): ProjectBuilder {
+        return this._projectBuilder;
+    }
+
     public MachineTick(): void {
         this._machine.doTick();
         this.machineTick = this._machine.tick;

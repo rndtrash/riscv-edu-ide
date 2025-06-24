@@ -1,15 +1,16 @@
-import type {Logger} from "$lib/backend/Logger";
+import { AssemblerProgram } from "../Assembler/AssemblerProgram";
+import { Project } from "../ProjectManager";
 
 export enum ProgramStatus {
     Success = 0,
     Failure
 }
 
-export type Program = (logger: Logger, ...args: any[]) => ProgramStatus;
+export type Program = (project: Project, ...args: any[]) => ProgramStatus;
 
-export const BuildPrograms: {
-    [name: string]: {
-        // TODO: scheme
-        program: Program
-    }
-} = {};
+export const BuildPrograms = new Map<string, {
+    // TODO: scheme
+    program: Program
+}>([
+    ["asm", { program: AssemblerProgram }]
+]);

@@ -1,6 +1,6 @@
-import type {Project} from "src/backend/ProjectManager";
-import {type Logger, LogLevel} from "src/backend/Logger";
-import {BuildPrograms, type Program, ProgramStatus} from "src/backend/BuildSystem/Program";
+import type { Project } from "src/backend/ProjectManager";
+import { LogLevel } from "src/backend/Logger";
+import { BuildPrograms, type Program, ProgramStatus } from "src/backend/BuildSystem/Program";
 
 export interface IBuildStageProgram {
     name: string;
@@ -37,15 +37,15 @@ export class BuildStage {
         return false;
     }
 
-    public run(project: Project, logger: Logger): boolean {
+    public run(project: Project): boolean {
         for (const value of this.programsSequence) {
             try {
-                const result = value.program(logger, value.arguments);
+                const result = value.program(project, value.arguments);
                 if (result != ProgramStatus.Success) {
-                    logger.log(`Program exited with status ${result}`, LogLevel.Error);
+                    console.log(`Program exited with status ${result}`, LogLevel.Error);
                 }
             } catch (exception) {
-                logger.log(`Program threw an exception: ${exception}`, LogLevel.Error);
+                console.log(`Program threw an exception: ${exception}`, LogLevel.Error);
                 return false;
             }
         }
@@ -68,7 +68,7 @@ export class BuildStage {
             json.outputFiles,
             json.programsSequence.map((value) => {
                 return {
-                    program: BuildPrograms[value.name],
+                    program: BuildPrograms.get(value.name).program,
                     arguments: value.arguments
                 } as BuildStageProgram;
             }));
@@ -86,10 +86,10 @@ export class ProjectBuilder {
         this.buildStages = buildStages;
     }
 
-    public run(project: Project, logger: Logger, force: boolean = false): boolean {
+    public run(project: Project, force: boolean = false): boolean {
         for (const stage of this.buildStages) {
             if (force || !stage.isUpToDate) {
-                const success = stage.run(project, logger);
+                const success = stage.run(project);
                 if (!success)
                     return false;
             }
