@@ -1,13 +1,13 @@
-import {Master, MasterBusMasterRegistry} from "$lib/backend/Emulator/Bus";
-import type {ComponentType} from "svelte";
-import DeviceVisualRv32 from "$lib/device-visuals/DeviceVisualRv32.svelte";
-import {v4} from "uuid";
+import { Master, MasterBusMasterRegistry } from "src/backend/Emulator/Bus";
+import { v4 } from "uuid";
 import { IRv32IInstruction, IRv32Instruction, IRv32JInstruction, IRv32RInstruction, IRv32SInstruction, Rv32Funct3Op, Rv32Funct3OpImm, Rv32Funct3Store, Rv32Funct7Op, Rv32OpCodes, VerifyOpcode } from "src/backend/Assembler/Instructions";
 
 const RISCV32_NAME: string = "rv32";
+export const RV32_REGISTERS_COUNT = 32;
 
 export interface IRv32State {
-    registers: number[]
+    registers: number[];
+    ip: number;
 }
 
 export function DecodeInstruction(instruction: number): IRv32Instruction | undefined {
@@ -83,28 +83,103 @@ enum Rv32IOState {
 }
 
 export class Rv32CPU extends Master<number, number> {
-    public svelteComponent: ComponentType | null = DeviceVisualRv32;
+    protected _dataView: DataView;
 
-    protected _registers: number[] = new Array<number>(32);
-    protected _ip: number = 0;
+    public getRegister(n: number): number {
+        if (n === 0)
+            return 0;
 
-    protected _state: Rv32CPUState = Rv32CPUState.Read;
-    protected _op1: number = 0;
+        if (n < 0 || n >= 32) throw "Too many registers";
 
-    protected _ioState: Rv32IOState = Rv32IOState.Read;
-    protected _ioOp1: number = 0;
-    protected _ioOp2: number = 0;
-
-    constructor() {
-        super();
-
-        for (let i = 0; i < this._registers.length; i++)
-            this._registers[i] = 0;
+        return this._dataView.getUint32(4 + 4 + 4 + 4 + 4 + 4 + n * 4);
     }
 
-    protected setRegister(index: number, value: number): void {
-        if (index != 0)
-            this._registers[index] = value;
+    protected setRegister(n: number, v: number) {
+        if (n === 0)
+            return;
+
+        if (n < 0 || n >= 32) throw "Too many registers";
+
+        this._dataView.setUint32(4 + 4 + 4 + 4 + 4 + 4 + n * 4, v);
+    }
+
+    protected get _ip(): number {
+        return this._dataView.getUint32(0);
+    }
+
+    protected set _ip(value: number) {
+        this._dataView.setUint32(0, value);
+    }
+
+    protected get _state(): Rv32CPUState {
+        return this._dataView.getUint32(4) as Rv32CPUState;
+    }
+
+    protected set _state(value: Rv32CPUState) {
+        this._dataView.setUint32(4, value as number);
+    }
+
+    protected get _op1(): number {
+        return this._dataView.getUint32(4 + 4);
+    }
+
+    protected set _op1(value: number) {
+        this._dataView.setUint32(4 + 4, value);
+    }
+
+    protected get _ioState(): Rv32IOState {
+        return this._dataView.getUint32(4 + 4 + 4) as Rv32IOState;
+    }
+
+    protected set _ioState(value: Rv32IOState) {
+        this._dataView.setUint32(4 + 4 + 4, value as number);
+    }
+
+    protected get _ioOp1(): number {
+        return this._dataView.getUint32(4 + 4 + 4 + 4);
+    }
+
+    protected set _ioOp1(value: number) {
+        this._dataView.setUint32(4 + 4 + 4 + 4, value);
+    }
+
+    protected get _ioOp2(): number {
+        return this._dataView.getUint32(4 + 4 + 4 + 4 + 4);
+    }
+
+    protected set _ioOp2(value: number) {
+        this._dataView.setUint32(4 + 4 + 4 + 4 + 4, value);
+    }
+
+    public static fromContext<Address, Data>(context: any, uuid?: string): Rv32CPU {
+        const rv32 = new Rv32CPU();
+
+        rv32.uuid = uuid ?? v4();
+        rv32.state = new SharedArrayBuffer(4 + 4 + 4 + 4 + 4 + 4 + 32 * 4);
+        rv32._dataView = new DataView(rv32.state);
+
+        rv32.init();
+
+        return rv32;
+    }
+
+    public static fromBuffer<Address, Data>(state: SharedArrayBuffer, uuid: string): Rv32CPU {
+        const rv32 = new Rv32CPU();
+
+        rv32.uuid = uuid;
+        rv32.state = state;
+        rv32._dataView = new DataView(rv32.state);
+
+        return rv32;
+    }
+
+    protected init(): void {
+        for (let i = 0; i < RV32_REGISTERS_COUNT; i++)
+            this.setRegister(i, 0);
+    }
+
+    public get info(): { name: string; uuid: string; } {
+        return { name: RISCV32_NAME, uuid: this.uuid };
     }
 
     protected nextInstruction(nextAddress?: number): void {
@@ -135,7 +210,7 @@ export class Rv32CPU extends Master<number, number> {
                         switch (op_imm.funct3) {
                             case Rv32Funct3OpImm.ADDI:
                                 console.log(`rv32: ADDI r${op_imm.rd} = r${op_imm.rs1} + 0x${op_imm.imm.toString(16)}`);
-                                this.setRegister(op_imm.rd, this._registers[op_imm.rs1] + op_imm.imm);
+                                this.setRegister(op_imm.rd, this.getRegister(op_imm.rs1) + op_imm.imm);
                                 break;
 
                             default:
@@ -153,12 +228,12 @@ export class Rv32CPU extends Master<number, number> {
                                 switch (op.funct7) {
                                     case Rv32Funct7Op.ADD:
                                         console.log(`rv32: ADD r${op.rd} = r${op.rs1} + r${op.rs2}`);
-                                        this.setRegister(op.rd, this._registers[op.rs1] + this._registers[op.rs2]);
+                                        this.setRegister(op.rd, this.getRegister(op.rs1) + this.getRegister(op.rs2));
                                         break;
 
                                     case Rv32Funct7Op.SUB:
                                         console.log(`rv32: SUB r${op.rd} = r${op.rs1} - r${op.rs2}`);
-                                        this.setRegister(op.rd, this._registers[op.rs1] - this._registers[op.rs2]);
+                                        this.setRegister(op.rd, this.getRegister(op.rs1) - this.getRegister(op.rs2));
                                         break;
 
                                     default:
@@ -188,8 +263,8 @@ export class Rv32CPU extends Master<number, number> {
                             case Rv32Funct3Store.WORD:
                                 console.log(`rv32: SW m[r${store.rs1} + 0x${offset.toString(16)}] = r${store.rs2}`);
                                 this._ioState = Rv32IOState.Write;
-                                this._ioOp1 = this._registers[store.rs1] + offset;
-                                this._ioOp2 = this._registers[store.rs2];
+                                this._ioOp1 = this.getRegister(store.rs1) + offset;
+                                this._ioOp2 = this.getRegister(store.rs2);
                                 this._state = Rv32CPUState.Noop;
                                 break;
 
@@ -267,18 +342,22 @@ export class Rv32CPU extends Master<number, number> {
     }
 
     public serialize(): { name: string; uuid: string; context: any } {
-        return {name: RISCV32_NAME, uuid: this.uuid, context: undefined};
+        return { name: RISCV32_NAME, uuid: this.uuid, context: undefined };
     }
 
     public getState(): IRv32State {
         return {
-            registers: Array.from<number>(this._registers)
+            registers: [...Array(RV32_REGISTERS_COUNT).keys()].map((i) => this.getRegister(i)),
+            ip: this._ip
         }
     }
 }
 
-MasterBusMasterRegistry[RISCV32_NAME] = (context: any, uuid: string = v4()) => {
-    const rv = new Rv32CPU();
-    rv.uuid = uuid;
-    return rv;
-}
+MasterBusMasterRegistry.set(RISCV32_NAME, {
+    fromContext(context: any, uuid: string = v4()) {
+        return Rv32CPU.fromContext(context, uuid);
+    },
+    fromBuffer(state, uuid) {
+        return Rv32CPU.fromBuffer(state, uuid);
+    },
+});

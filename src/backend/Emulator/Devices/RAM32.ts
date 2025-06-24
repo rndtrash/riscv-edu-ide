@@ -3,27 +3,70 @@ import { v4 } from "uuid";
 
 const RAM32_NAME: string = "ram32";
 
+export interface IRAM32Context {
+    address: number;
+    size: number;
+}
+
 export class RAM32 extends Device<number, number> {
-    // public svelteComponent: ComponentType | null = DeviceVisualRAM32;
+    protected _dataView: DataView;
+    // protected array: Uint32Array;
 
-    protected position: number;
-    protected array: Uint32Array;
+    protected get position(): number {
+        return this._dataView.getUint32(0);
+    }
 
-    constructor(position: number, size: number) {
-        super();
+    protected set position(v: number) {
+        this._dataView.setUint32(0, v);
+    }
 
-        this.position = position ?? 0;
-        this.array = new Uint32Array((size + 3) >> 2); // Integer division by 2
+    protected get size(): number {
+        return this._dataView.getUint32(4);
+    }
+
+    protected set size(v: number) {
+        this._dataView.setUint32(4, v);
+    }
+
+    protected getDword(address: number): number {
+        return this._dataView.getUint32(4 + 4 + address);
+    }
+
+    protected setDword(address: number, value: number) {
+        this._dataView.setUint32(4 + 4 + address, value);
+    }
+
+    public static fromContext<Address, Data>(context: IRAM32Context, uuid?: string): RAM32 {
+        const ram = new RAM32();
+        const calcSize = (context.size + 3) >> 2;
+
+        ram.uuid = uuid ?? v4();
+        ram.state = new SharedArrayBuffer(4 + 4 + calcSize);
+        ram._dataView = new DataView(ram.state);
+        ram.position = context.address;
+        ram.size = calcSize;
+
+        return ram;
+    }
+
+    public static fromBuffer(state: SharedArrayBuffer, uuid: string): RAM32 {
+        const ram = new RAM32();
+
+        ram.uuid = uuid;
+        ram.state = state;
+        ram._dataView = new DataView(ram.state);
+
+        return ram;
     }
 
     protected DeviceRead(ioTick: number, address: number): number | null {
-        if (address < this.position || address >= this.position + this.array.length * 4)
+        if (address < this.position || address >= this.position + this.size)
             return null;
 
         if (address % 4 != 0)
             console.error(`ram unaligned access`);
 
-        let value = this.array[(address - this.position) >> 2];
+        let value = this.getDword(address - this.position);
         console.log(`ram read @ ${address.toString(16)} = ${value}`);
         return value;
     }
@@ -32,12 +75,12 @@ export class RAM32 extends Device<number, number> {
     }
 
     protected DeviceWrite(ioTick: number, address: number, data: number): void {
-        if (address < this.position || address >= this.position + this.array.length * 4)
+        if (address < this.position || address >= this.position + this.size)
             return undefined;
 
         console.log(`ram write @ ${address.toString(16)} = ${data.toString(16)}`);
         if (address % 4 == 0)
-            this.array[((address - this.position) >> 2) << 2] = data;
+            this.setDword(((address - this.position) >> 2) << 2, data);
         else
             console.error(`ram unaligned access`);
     }
@@ -49,21 +92,21 @@ export class RAM32 extends Device<number, number> {
     public serialize(): any {
         return {
             address: this.position,
-            size: this.array.length * 4 // Size of the data
+            size: this.size
         };
     }
 
     public getState(): Uint32Array {
-        return new Uint32Array(this.array);
+        return new Uint32Array(this.state.slice(4 + 4));
     }
 }
 
 // TODO:
-// MasterBusDeviceRegistry.set(RAM32_NAME, (context: {
-//     address: number,
-//     size: number
-// }, uuid: string = v4()) => {
-//     const device = new RAM32(context.address, context.size);
-//     device.uuid = uuid;
-//     return device;
-// });
+MasterBusDeviceRegistry.set(RAM32_NAME, {
+    fromContext(context, uuid: string = v4()) {
+        return RAM32.fromContext(context, uuid);
+    },
+    fromBuffer(state, uuid) {
+        return RAM32.fromBuffer(state, uuid);
+    },
+});

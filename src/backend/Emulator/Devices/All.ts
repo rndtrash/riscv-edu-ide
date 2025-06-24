@@ -2,4 +2,4 @@
 
 import "./ConsoleLog";
 import "./RAM32";
-// import "./ROM32";
+import "./ROM32";

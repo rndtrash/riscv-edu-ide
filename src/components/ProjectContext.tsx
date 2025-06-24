@@ -3,6 +3,7 @@ import { Dispatch, StateUpdater, useContext, useEffect, useState } from "preact/
 import { useFileSystem } from "src/components/FileSystemContext";
 import { MakeADD, MakeADDI, MakeNOP, MakeSW, MakeJ } from "src/backend/Assembler/Instructions";
 import { IProjectJson, Project, PROJECT_EXTENSION } from "src/backend/ProjectManager";
+import { BuildStage, ProjectBuilder } from "src/backend/BuildSystem/ProjectBuilder";
 
 interface ProjectContextType {
     projectName: string;
@@ -67,7 +68,11 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                                     }
                                 }
                             ]
-                        }
+                        },
+                        projectBuilder: (new ProjectBuilder([
+                            // TODO:
+                            new BuildStage("run", ["main.s"], ["main.s.o"], [])
+                        ])).toJSON()
                     } as IProjectJson);
                     const textEncoder = new TextEncoder();
                     const chunks = textEncoder.encode(json);
@@ -79,7 +84,13 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                 }
             }
 
+            const projectJsonHandle = await tempProjectFolder.getFileHandle(PROJECT_EXTENSION);
+            const projectJsonFile = await projectJsonHandle.getFile();
+            const projectJson = JSON.parse(await projectJsonFile.text()) as IProjectJson;
+            const proj = Project.FromJSON(projectJson);
+
             setProjectFolder(tempProjectFolder);
+            setProject(proj);
         })();
     }, [projectName]);
 

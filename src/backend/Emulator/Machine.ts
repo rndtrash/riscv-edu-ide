@@ -3,8 +3,8 @@ import "src/backend/Emulator/Devices/All";
 import "src/backend/Emulator/Masters/All";
 
 export interface ISystemConfiguration {
-    master: { name: string; context: any },
-    devices: { name: string; context: any }[]
+    master: { name: string; uuid?: string; context: any; },
+    devices: { name: string; uuid?: string; context: any; }[]
 }
 
 export interface IDeviceWorkerExchange {
@@ -20,17 +20,32 @@ export interface ISystemWorkerExchange {
     };
 }
 
+export enum MachineWorkerMessageTypes {
+    Load = "load",
+    Tick = "tick",
+    Run = "run",
+    Stop = "stop"
+}
+
 export interface IMachineWorkerMessage {
-    type: "load" | "tick";
+    type: MachineWorkerMessageTypes;
 }
 
 export interface IMachineWorkerMessageLoad extends IMachineWorkerMessage {
-    type: "load";
+    type: MachineWorkerMessageTypes.Load;
     machine: ISystemWorkerExchange;
 }
 
 export interface IMachineWorkerMessageTick extends IMachineWorkerMessage {
-    type: "tick";
+    type: MachineWorkerMessageTypes.Tick;
+}
+
+export interface IMachineWorkerMessageRun extends IMachineWorkerMessage {
+    type: MachineWorkerMessageTypes.Run;
+}
+
+export interface IMachineWorkerMessageStop extends IMachineWorkerMessage {
+    type: MachineWorkerMessageTypes.Stop;
 }
 
 export class Machine {
@@ -56,11 +71,13 @@ export class Machine {
     }
 
     public static FromSystemConfiguration(systemConfiguration: ISystemConfiguration): Machine {
-        let master: Master<number, number> = MasterBusMasterRegistry.get(systemConfiguration.master.name).fromContext(systemConfiguration.master.context);
+        let master: Master<number, number> = MasterBusMasterRegistry
+            .get(systemConfiguration.master.name)
+            .fromContext(systemConfiguration.master.context, systemConfiguration.master.uuid);
 
         let devices: Device<number, number>[] = Array.of<Device<number, number>>();
         for (let deviceSerialized of systemConfiguration.devices) {
-            let device = MasterBusDeviceRegistry[deviceSerialized.name](deviceSerialized.context);
+            let device = MasterBusDeviceRegistry.get(deviceSerialized.name).fromContext(deviceSerialized.context, deviceSerialized.uuid);
             devices = [...devices, device];
         }
 
@@ -118,7 +135,7 @@ export class Machine {
     }
 
     public shareWith(worker: Worker): void {
-        const message: IMachineWorkerMessageLoad = { type: "load", machine: this.toWorkerExchange() };
+        const message: IMachineWorkerMessageLoad = { type: MachineWorkerMessageTypes.Load, machine: this.toWorkerExchange() };
         worker.postMessage(message);
     }
 }

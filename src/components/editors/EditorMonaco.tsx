@@ -7,7 +7,6 @@ import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { useProject } from '../ProjectContext';
 import { getFile } from 'src/backend/FileSystem';
-import { useTabs } from '../TabsContext';
 import { useEditorManager } from './EditorManager';
 
 self.MonacoEnvironment = {
@@ -27,6 +26,59 @@ self.MonacoEnvironment = {
         return new editorWorker()
     }
 }
+
+monaco.editor.defineTheme('riscv-edu-ide-theme', {
+    base: 'vs',
+    inherit: true,
+    rules: [
+        // { token: '', foreground: '#313131' },
+        // { token: 'register', foreground: '#313131' },
+        // { token: 'instruction', foreground: '#313131', fontStyle: 'bold' },
+        { token: 'instruction', foreground: '#448000' },
+        { token: 'comment', foreground: '#00000054' },
+        { token: 'directive', foreground: '#806300' },
+        { token: 'number', foreground: '#28766e' },
+        { token: 'label', foreground: '#7D0080' }
+    ],
+    colors: {
+        //     'editor.background': '#FAFEF6',
+        //     'editor.foreground': '#313131'
+    }
+});
+
+monaco.languages.register({ id: 'asm' });
+monaco.languages.setMonarchTokensProvider('asm', {
+    defaultToken: '',
+    tokenPostfix: '.asm',
+
+    instructions: [
+        'add', 'addi', 'sub', 'and', 'andi', 'or', 'ori', 'xor', 'xori', 'slt', 'slti', 'sltu', 'sltiu', 'sra', 'srai', 'srl', 'srli', 'sll', 'slli',
+        'lw', 'sw', 'lb', 'sb', 'lui', 'auipc', 'jal', 'jalr', 'beq', 'bne', 'blt', 'bge', 'bltu', 'bgeu'
+    ],
+    directives: ['.section', '.global', '.define', '.offset'],
+
+    tokenizer: {
+        root: [
+            [/#.*$/, "comment"],
+            [/[a-zA-Zа-яёА-ЯЁ_\d]+:/, "label"],
+            // [/%[a-zA-Z0-9]+/, "register"],
+            [/\.[a-zA-Z_][a-zA-Z_\d]*/, {
+                cases: {
+                    '@directives': 'directive',
+                    '@default': ''
+                }
+            }],
+            [/[a-zA-Z_][a-zA-Z_\d]*/, {
+                cases: {
+                    '@instructions': 'instruction',
+                    '@default': ''
+                }
+            }],
+            [/-?((0[xX])?[0-9A-Fa-f]+)/, "number"],
+            // [/[ \t]+/, "whitespace"]
+        ]
+    }
+});
 
 interface IEditorMonacoContext {
     model: monaco.editor.ITextModel;
@@ -53,11 +105,11 @@ export function EditorMonaco(props: { uri: string, context: IEditorMonacoContext
             // setLanguage(lang);
 
             if (editorRef.current) {
-                props.context.model ??= monaco.editor.createModel(text, 'javascript');
+                props.context.model ??= monaco.editor.createModel(text, 'asm');
 
                 monacoRef.current = monaco.editor.create(editorRef.current, {
                     model: props.context.model,
-                    theme: 'vs-light',
+                    theme: 'riscv-edu-ide-theme',
                     automaticLayout: true,
                 });
 
@@ -76,7 +128,6 @@ export function EditorMonaco(props: { uri: string, context: IEditorMonacoContext
 
     useEffect(() => {
         async function saveFile() {
-            console.log("monaco save");
             if (props.context.model !== undefined) {
                 const fileHandle = await getFile(props.uri, projectManager.projectFolder);
                 const writable = await fileHandle.createWritable();

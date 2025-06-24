@@ -18,27 +18,31 @@ import { FileBrowserSideBar } from './components/sidebars/FileBrowserSideBar';
 import { EditorContainer } from './components/editors/EditorContainer';
 import { EditorManager } from './components/editors/EditorManager';
 import { TabsProvider } from './components/TabsContext';
+import { SimulatorControls } from './components/simulator/SimulatorControls';
+import { SimulatorSideBar } from './components/simulator/SimulatorSideBar';
+import { MachineProvider } from './components/simulator/MachineContext';
 
 export function App() {
 	return (
 		<FileSystemProvider>
 			<LoadingBarrier>
 				<ProjectProvider>
-					<EditorManager>
-						<TabsProvider>
-							<main>
-								<nav>
-									<ProjectSelect />
-									<Tabs />
-								</nav>
-								<FileBrowserSideBar />
-								<EditorContainer />
-								<SideBar title="Status" isLeftSide={false}>
-									<div>Test</div>
-								</SideBar>
-							</main>
-						</TabsProvider>
-					</EditorManager>
+					<MachineProvider>
+						<EditorManager>
+							<TabsProvider>
+								<main>
+									<nav>
+										<ProjectSelect />
+										<Tabs />
+										<SimulatorControls />
+									</nav>
+									<FileBrowserSideBar />
+									<EditorContainer />
+									<SimulatorSideBar />
+								</main>
+							</TabsProvider>
+						</EditorManager>
+					</MachineProvider>
 				</ProjectProvider>
 			</LoadingBarrier>
 		</FileSystemProvider>

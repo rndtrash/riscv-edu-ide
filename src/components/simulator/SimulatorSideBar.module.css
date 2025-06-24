@@ -1,0 +1,40 @@
+div.tabContent {
+    padding: 4px;
+    overflow-y: auto;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: stretch;
+
+    >h5:first-child {
+        margin-top: 0;
+    }
+
+    .icon {
+        width: 16px;
+        height: 16px;
+        aspect-ratio: 1;
+    }
+
+    .table3 {
+        display: grid;
+        grid-template-columns: min-content 1fr auto;
+        grid-template-rows: 1fr;
+        grid-column-gap: 2px;
+        grid-row-gap: 2px;
+    }
+
+    span {
+        font-size: 16px;
+
+        &.value {
+            text-align: right;
+            opacity: 0.75;
+        }
+
+        &.hexValue {
+            text-align: right;
+            opacity: 0.75;
+            font-family: monospace;
+        }
+    }
+}
