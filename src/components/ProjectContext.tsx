@@ -19,6 +19,17 @@ const ProjectContext = createContext<ProjectContextType>({
     projectFolder: null
 });
 
+const EXAMPLE_ASSEMBLY = `
+.offset 0x0
+
+# Выводит число 8 в регистр 1
+test:
+    addi x1, x0, 10
+    # beq x1, x0, 4
+    addi x1, x1, -2
+    loop: jal x0, 0
+`;
+
 export function ProjectProvider({ children }: { children: ComponentChildren }) {
     const [projectName, setProjectName] = useState<string>('new-project');
     const [projectFolder, setProjectFolder] = useState<FileSystemDirectoryHandle>(null);
@@ -33,11 +44,19 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
             } catch (ex: any) {
                 if (ex instanceof DOMException && ex.name == "NotFoundError") {
                     tempProjectFolder = await fs.rootDir.getDirectoryHandle(projectName, { create: true });
-                    const projectFile = await tempProjectFolder.getFileHandle(PROJECT_EXTENSION, { create: true });
-                    const projectFileWritable = await projectFile.createWritable();
 
-                    const writer = projectFileWritable.getWriter();
-                    await writer.ready
+                    async function writeFile(fileName: string, fileContent: string) {
+                        const fileHandle = await tempProjectFolder.getFileHandle(fileName, { create: true });
+                        const fileWritable = await fileHandle.createWritable();
+                        const fileWriter = fileWritable.getWriter();
+                        await fileWriter.ready;
+                        const textEncoder = new TextEncoder();
+                        const chunks = textEncoder.encode(fileContent);
+                        await fileWriter.write(chunks);
+                        await fileWriter.ready;
+                        fileWriter.releaseLock();
+                        await fileWritable.close();
+                    }
 
                     const json = JSON.stringify({
                         systemConfiguration: {
@@ -75,13 +94,8 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                             new BuildStage("run", ["main.s"], ["main.s.o"], [])
                         ])).toJSON()
                     } as IProjectJson);
-                    const textEncoder = new TextEncoder();
-                    const chunks = textEncoder.encode(json);
-                    await writer.write(chunks);
-
-                    await writer.ready
-                    writer.releaseLock();
-                    await projectFileWritable.close();
+                    await writeFile(PROJECT_EXTENSION, json);
+                    await writeFile("main.s", EXAMPLE_ASSEMBLY);
                 }
             }
 
