@@ -75,21 +75,22 @@ export function EditorMonaco(props: { uri: string, context: IEditorMonacoContext
     }, [props.uri]);
 
     useEffect(() => {
-        const saveFile = () => {
-            (async () => {
-                if (props.context.model !== undefined) {
-                    const fileHandle = await getFile(props.uri, projectManager.projectFolder);
-                    const writable = await fileHandle.createWritable();
-                    const textEncoder = new TextEncoder();
-                    writable.write(textEncoder.encode(props.context.model.getValue()));
-                    await writable.close();
-                }
-            })();
+        async function saveFile() {
+            console.log("monaco save");
+            if (props.context.model !== undefined) {
+                const fileHandle = await getFile(props.uri, projectManager.projectFolder);
+                const writable = await fileHandle.createWritable();
+                const textEncoder = new TextEncoder();
+                writable.write(textEncoder.encode(props.context.model.getValue()));
+                await writable.close();
+            }
         };
-        editorManager.setSaveCallback(saveFile);
+        editorManager.saveFile.current = saveFile;
 
-        return () => editorManager.setSaveCallback(null);
-    }, [editorManager, props.context]);
+        return () => {
+            editorManager.saveFile.current = null;
+        };
+    }, [editorManager]);
 
     return (
         <div ref={editorRef} style={{ width: '100%', height: '100%' }} />

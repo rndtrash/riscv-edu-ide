@@ -1,13 +1,11 @@
 import { useEffect } from 'preact/hooks';
 
 import { useEditorManager } from './EditorManager';
-import { useProject } from '../ProjectContext';
 import { createElement } from 'preact';
 import { getCurrentTab, useTabs } from '../TabsContext';
 
 export function EditorContainer() {
     const editorManager = useEditorManager();
-    const projectManager = useProject();
 
     const tabManager = useTabs();
     const tab = getCurrentTab(tabManager);
@@ -17,14 +15,15 @@ export function EditorContainer() {
             if (e.ctrlKey && e.code === 'KeyS') {
                 e.preventDefault();
 
-                editorManager.saveFile?.call(null);
+                if (editorManager.saveFile.current !== undefined)
+                    editorManager.saveFile.current();
             }
         }
 
         window.addEventListener('keydown', onKeyDown);
 
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [editorManager, projectManager]);
+    }, [editorManager]);
 
     return (
         <div class="editor">

@@ -1,8 +1,9 @@
 import { ComponentChildren, createContext, FunctionComponent } from "preact";
-import { Dispatch, StateUpdater, useContext, useState } from "preact/hooks";
+import { Dispatch, StateUpdater, useContext, useEffect, useState } from "preact/hooks";
 import { ITab } from "./Tab";
 import { EditorProjectSettings } from "./editors/EditorProjectSettings";
 import { EditorMonaco } from "./editors/EditorMonaco";
+import { useProject } from "./ProjectContext";
 
 interface TabsContextType {
     tabs: ITab[];
@@ -31,6 +32,28 @@ export function openTab(context: TabsContextType, uri: string) {
     context.setTabIndex(newTabs.length - 1);
 }
 
+export function closeTab(context: TabsContextType, uri: string) {
+    let tabIndex = -1;
+    for (const [index, tab] of context.tabs.entries()) {
+        if (tab.uri === uri) {
+            tabIndex = index;
+            break;
+        }
+    }
+
+    if (tabIndex == -1)
+        return;
+
+    const newTabs = context.tabs.filter((value, index) => index != tabIndex);
+    context.setTabs(newTabs);
+    console.log(context.currentTabIndex, tabIndex);
+    if (tabIndex < context.currentTabIndex) {
+        context.setTabIndex(context.currentTabIndex - 1);
+    } else {
+        context.setTabIndex(context.currentTabIndex);
+    }
+}
+
 export function getEditor(uri: string): FunctionComponent<any> {
     if (uri.endsWith(".rvedu")) {
         return EditorProjectSettings;
@@ -50,6 +73,11 @@ export function getCurrentTab(context: TabsContextType): ITab | null {
 export function TabsProvider({ children }: { children: ComponentChildren }) {
     const [tabs, setTabs] = useState<ITab[]>([]);
     const [currentTabIndex, setTabIndex] = useState<number>(-1);
+
+    const project = useProject();
+    useEffect(() => {
+        setTabs([]);
+    }, [project.projectName]);
 
     return (
         <TabsContext.Provider value={{ tabs, setTabs, currentTabIndex, setTabIndex }}>
