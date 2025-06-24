@@ -5,18 +5,17 @@ import childArrowLine from "src/assets/child-arrow-line.svg";
 import textLine from "src/assets/text-line.svg";
 import storageLine from "src/assets/storage-line.svg";
 import style from "./SimulatorSideBar.module.css";
-import { useMachine } from "./MachineContext";
 import { useProject } from "../ProjectContext";
 import { RV32_REGISTERS_COUNT, Rv32CPU } from "src/backend/Emulator/Masters/RISCV32";
 import { useEffect, useState } from "preact/hooks";
+import { RAM32 } from "src/backend/Emulator/Devices/RAM32";
+import { ROM32 } from "src/backend/Emulator/Devices/ROM32";
 
 function Overview() {
     const project = useProject();
 
-    if (!project?.project?.machine) return (<div>Loading...</div>);
-
     const [registers, setRegisters] = useState<string[]>(Array(RV32_REGISTERS_COUNT));
-    const [bus, setBus] = useState({address: '-', value: '-', direction: '-'});
+    const [bus, setBus] = useState({ address: '-', value: '-', direction: '-' });
 
     function formatHex(n: number): string {
         return '0x' + Number(n).toString(16).padStart(8, '0');
@@ -50,6 +49,8 @@ function Overview() {
 
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
+
+    if (!project?.project?.machine) return (<div>Loading...</div>);
 
     return (
         <div class={style.tabContent}>
@@ -90,7 +91,58 @@ function Overview() {
 }
 
 function Memory() {
-    return (<div>Memory</div>);
+    const project = useProject();
+
+    const [memoryDevices, setMemoryDevices] = useState<{ name: string, address: string, contents: Uint32Array }[]>([]);
+
+    function formatHex(n: number): string {
+        return '0x' + Number(n).toString(16).padStart(8, '0');
+    }
+
+    useEffect(() => {
+        let animationFrameId: number;
+
+        const check = () => {
+            const memdev: { name: string, address: string, contents: Uint32Array }[] = [];
+            project.project.machine._masterBus.devices.forEach((device) => {
+                if (device instanceof RAM32) {
+                    const ram = device as RAM32;
+                    memdev.push({ name: "RAM32", address: formatHex(ram.position), contents: ram.getState() });
+                } else if (device instanceof ROM32) {
+                    const rom = device as ROM32;
+                    memdev.push({ name: "ROM32", address: formatHex(rom.position), contents: rom.getState() });
+                }
+            });
+            setMemoryDevices(memdev);
+
+            animationFrameId = requestAnimationFrame(check);
+        };
+
+        animationFrameId = requestAnimationFrame(check);
+
+        return () => cancelAnimationFrame(animationFrameId);
+    }, []);
+
+    if (!project?.project?.machine) return (<div>Loading...</div>);
+
+    return (
+        <div class={style.tabContent}>
+            {memoryDevices.map((memdev) => <>
+                <h5>{memdev.name} @ <span class={style.hexValue}>{memdev.address}</span></h5>
+                <div class={style.table4}>
+                    {
+                        (() => {
+                            let arr = [];
+                            for (const value of memdev.contents) {
+                                arr.push(<span class={style.hexValue}>{formatHex(value)}</span>);
+                            }
+                            return arr;
+                        })()
+                    }
+                </div>
+            </>)}
+        </div>
+    );
 }
 
 export function SimulatorSideBar() {

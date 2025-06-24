@@ -12,7 +12,7 @@ export interface IROM32Context {
 export class ROM32 extends Device<number, number> {
     protected _dataView: DataView;
 
-    protected get position(): number {
+    public get position(): number {
         return this._dataView.getUint32(0);
     }
 
@@ -20,7 +20,7 @@ export class ROM32 extends Device<number, number> {
         this._dataView.setUint32(0, v);
     }
 
-    protected get size(): number {
+    public get size(): number {
         return this._dataView.getUint32(4);
     }
 

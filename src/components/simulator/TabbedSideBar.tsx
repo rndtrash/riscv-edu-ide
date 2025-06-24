@@ -10,7 +10,7 @@ export function TabbedSideBar(props: {
 }) {
     const [visible, setVisible] = useState<boolean>(props.visibleByDefault ?? true);
     const [tabIndex, setTabIndex] = useState<number>(0);
-    const classList = ["sidebar"];
+    const classList = ["sidebar", style.special];
     if (visible) {
         classList.push("visible");
     }
@@ -36,7 +36,7 @@ export function TabbedSideBar(props: {
                     )}
                 </div>}
             </div>
-            <div class="content">
+            <div class={`content ${style.limitedContent}`}>
                 {visible && (<>{createElement(props.tabs[tabIndex].component, {})}</>)}
             </div>
         </div>
