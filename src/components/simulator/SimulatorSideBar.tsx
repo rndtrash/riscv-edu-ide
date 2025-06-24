@@ -14,6 +14,8 @@ import { ROM32 } from "src/backend/Emulator/Devices/ROM32";
 function Overview() {
     const project = useProject();
 
+    if (!project?.project?.machine) return (<div>Loading...</div>);
+
     const [registers, setRegisters] = useState<string[]>(Array(RV32_REGISTERS_COUNT));
     const [bus, setBus] = useState({ address: '-', value: '-', direction: '-' });
 
@@ -49,8 +51,6 @@ function Overview() {
 
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
-
-    if (!project?.project?.machine) return (<div>Loading...</div>);
 
     return (
         <div class={style.tabContent}>
@@ -92,6 +92,8 @@ function Overview() {
 
 function Memory() {
     const project = useProject();
+
+    if (!project?.project?.machine) return (<div>Loading...</div>);
 
     const [memoryDevices, setMemoryDevices] = useState<{ name: string, address: string, contents: Uint32Array }[]>([]);
 
