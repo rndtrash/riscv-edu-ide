@@ -22,7 +22,7 @@ export function DecodeInstruction(instruction: number): IRv32Instruction | undef
                 rd: (instruction >> 7) & 0b1_1111,
                 funct3: (instruction >> (7 + 5)) & 0b111,
                 rs1: (instruction >> (7 + 5 + 3)) & 0b1_1111,
-                imm: (instruction >> (7 + 5 + 3 + 5)) & 0b11_1111_1111_1111,
+                imm: (instruction >> (7 + 5 + 3 + 5)) & 0b1111_1111_1111,
             } as IRv32IInstruction;
 
         case Rv32OpCodes.OP:
@@ -64,7 +64,7 @@ export function DecodeInstruction(instruction: number): IRv32Instruction | undef
 function signExtend(n: number, bits: number): number {
     const sign = n >> (bits - 1);
     if (sign != 0) {
-        n = ~n + 1;
+        n |= ~((1 << bits) - 1);
     }
     return n;
 }
@@ -209,8 +209,11 @@ export class Rv32CPU extends Master<number, number> {
                         const op_imm = instruction as IRv32IInstruction;
                         switch (op_imm.funct3) {
                             case Rv32Funct3OpImm.ADDI:
-                                console.log(`rv32: ADDI r${op_imm.rd} = r${op_imm.rs1} + 0x${op_imm.imm.toString(16)}`);
-                                this.setRegister(op_imm.rd, this.getRegister(op_imm.rs1) + op_imm.imm);
+                                {
+                                    const immExt = signExtend(op_imm.imm, 12);
+                                    console.log(`rv32: ADDI r${op_imm.rd} = r${op_imm.rs1} + 0x${immExt.toString(16)}`);
+                                    this.setRegister(op_imm.rd, this.getRegister(op_imm.rs1) + immExt);
+                                }
                                 break;
 
                             default:

@@ -118,7 +118,7 @@ export class Literal extends Token {
     }
 }
 
-export class Number extends Token {
+export class NumberToken extends Token {
     static readonly NUMBER = "^[+\\-]?(0x)?[0-9]+";
     value: number;
 
@@ -128,20 +128,20 @@ export class Number extends Token {
         this.value = value;
     }
 
-    static TryParse(input: string, start: number): Number | null {
+    static TryParse(input: string, start: number): NumberToken | null {
         if (start < input.length) {
-            const numberRegexp = new RegExp(Number.NUMBER);
+            const numberRegexp = new RegExp(NumberToken.NUMBER);
             const result = input.substring(start).match(numberRegexp);
             if (result !== null) {
                 const length = result[0].length;
                 const s = input.substring(start, start + length);
                 let n: number = 0;
-                if (s.startsWith("0x")) {
-                    n = parseInt(s.substring(2), 16);
+                if (s.startsWith("0x") || s.startsWith("-0x")) {
+                    n = parseInt(s.substring(s[0] === "-" ? 3 : 2), 16);
                 } else {
                     n = parseInt(s, 10);
                 }
-                return new Number(n, start, length);
+                return new NumberToken(n, start, length);
             }
         }
         return null;
@@ -160,7 +160,7 @@ export function tokenize(input: string): Token[] {
         Dot.TryParse,
         Comma.TryParse,
         NewLine.TryParse,
-        Number.TryParse,
+        NumberToken.TryParse,
         Literal.TryParse
     ];
 

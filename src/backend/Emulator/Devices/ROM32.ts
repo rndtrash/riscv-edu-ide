@@ -36,11 +36,11 @@ export class ROM32 extends Device<number, number> {
         this._dataView.setUint32(4 + 4, v ? 1 : 0);
     }
 
-    protected getDword(address: number): number {
+    public getDword(address: number): number {
         return this._dataView.getUint32(4 + 4 + 4 + address);
     }
 
-    protected setDword(address: number, value: number) {
+    public setDword(address: number, value: number) {
         this._dataView.setUint32(4 + 4 + 4 + address, value);
     }
 

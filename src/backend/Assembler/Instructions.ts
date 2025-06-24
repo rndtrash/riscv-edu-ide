@@ -241,7 +241,7 @@ export function MakeSUB(firstRegister: number, secondRegister: number, destinati
     });
 }
 
-export function MakeADDI(sourceRegister: number, destinationRegister: number, immediate: number): number {
+export function MakeADDI(destinationRegister: number, sourceRegister: number, immediate: number): number {
     return MakeIInstruction({
         opcode: Rv32OpCodes.OP_IMM,
         rd: destinationRegister,

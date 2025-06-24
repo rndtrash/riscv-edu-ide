@@ -5,7 +5,7 @@ import { MakeADD, MakeADDI, MakeNOP, MakeSW, MakeJ } from "src/backend/Assembler
 import { IProjectJson, Project, PROJECT_EXTENSION } from "src/backend/ProjectManager";
 import { BuildStage, ProjectBuilder } from "src/backend/BuildSystem/ProjectBuilder";
 
-interface ProjectContextType {
+export interface ProjectContextType {
     projectName: string;
     setProjectName: Dispatch<StateUpdater<string>>;
     project: Project;
@@ -63,6 +63,7 @@ export function ProjectProvider({ children }: { children: ComponentChildren }) {
                                             MakeADD(1, 2, 3),
                                             MakeSW(0, 3, 128),
                                             MakeJ(0),
+                                            ...Array(4 * 16) // Reserve some space
                                         ],
                                         readOnly: true
                                     }

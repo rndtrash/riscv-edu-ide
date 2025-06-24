@@ -9,8 +9,10 @@ export class Project {
     public machineTick: number;
     protected _machine: Machine;
     protected _projectBuilder: ProjectBuilder;
+    protected _initialSystemConfiguration: ISystemConfiguration;
 
     public constructor(systemConfiguration: ISystemConfiguration, projectBuilder: ProjectBuilder) {
+        this._initialSystemConfiguration = systemConfiguration;
         this._machine = Machine.FromSystemConfiguration(systemConfiguration);
         this._projectBuilder = projectBuilder;
     }
@@ -29,6 +31,10 @@ export class Project {
 
     public get builder(): ProjectBuilder {
         return this._projectBuilder;
+    }
+
+    public resetMachine(): void {
+        this._machine = Machine.FromSystemConfiguration(this._initialSystemConfiguration);
     }
 
     public MachineTick(): void {
